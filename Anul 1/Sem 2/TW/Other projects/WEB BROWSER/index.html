@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" sizes="16×16" href="favicon.png" />
+    <title>BAKA Browser</title>
+    <style>
+      .Halign {
+        margin-right: auto;
+        margin-left: auto;
+        display: block;
+      }
+      .Valign {
+        position: absolute;
+        left: 50%;
+        top: 35%;
+        transform: translate(-50%, -60%);
+      }
+      .browser-image {
+        width: 50%;
+      }
+      #search-bar {
+        width: 600px;
+        height: 30px;
+        border-radius: 25px;
+        border-color: #7a05499f;
+        color: #7a05499f;
+        outline: none;
+      }
+      #search-button {
+        border-radius: 25px;
+        background: #7a05499f;
+        width: 150px;
+        height: 50px;
+        border: 0px;
+        outline: none;
+      }
+      :-moz-placeholder {
+        color: #7a05499f;
+      }
+      ::-webkit-input-placeholder {
+        color: #7a05499f;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="Valign">
+      <img
+        src="IMAGES/browser-image-2.png"
+        alt="BAKA LOGO"
+        class="browser-image Halign"
+      />
+      <div>
+        <input
+          id="search-bar"
+          class="Halign"
+          type="text"
+          placeholder="     It's not like I care what you search, BAKA!!!"
+        />
+        <br />
+        <button class="Halign" id="search-button">Hmph!</button>
+      </div>
+    </div>
+  </body>
+</html>

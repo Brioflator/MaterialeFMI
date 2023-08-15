@@ -1,0 +1,1333 @@
+select * from emp_alb;
+select * from jobs_alb;
+
+   select j.job_title , e.last_name, e.salary 
+    from emp e,jobs j
+    where j.job_id=e.job_id
+    order by j.job_title;
+   select job_title
+    from jobs 
+    order by job_title;
+    
+    select job_title
+    from jobs
+    where job_title  not in (select j.job_title 
+                                                from emp e,jobs j
+                                                where j.job_id=e.job_id);
+--1.a)
+declare
+    type titluri_jobs is table of jobs.job_title%type index by binary_integer;
+    type salarii_emp is table of emp.salary%type index by binary_integer; 
+    type nume_emp is table of emp.last_name%type index by binary_integer;
+    ok number(2);
+    j integer:=1;
+    tj titluri_jobs;  --titluri cu angajati
+    tt  titluri_jobs;   --toate titlurile distincte cu sau fara angajati
+    se salarii_emp;
+    ne nume_emp;
+
+begin
+    select j.job_title , e.last_name, e.salary 
+    bulk collect into tj,ne,se
+    from emp e,jobs j
+    where j.job_id=e.job_id
+    order by j.job_title;
+    
+    select job_title
+    bulk collect into tt
+    from jobs 
+    order by job_title;
+    for i in tt.first..tt.last LOOP
+            ok:=0;
+            DBMS_OUTPUT.PUT( i|| ':    ' ||tt(i));
+            DBMS_OUTPUT.NEW_LINE;
+            while tj(j)=tt(i)  and  j<tj.count loop
+                        DBMS_OUTPUT.PUT('              '||ne(j) || '  ' || se(j));
+                        DBMS_OUTPUT.NEW_LINE;
+                         j:=j+1;
+                         ok:=1;
+            end loop;
+            if ok=0 then DBMS_OUTPUT.PUT('Niciun angajat care lucreaza pe acest job in prezent');
+            end if;
+            DBMS_OUTPUT.PUT( '---------------------- ');
+            DBMS_OUTPUT.NEW_LINE;
+    END LOOP;
+end;
+/
+--b)
+DECLARE
+    ok number(2);
+    CURSOR te IS
+            select j.job_title titlu, e.last_name nume, e.salary salariu
+            from emp e,jobs j
+            where j.job_id=e.job_id
+            order by j.job_title;
+            
+     CURSOR t IS
+            select job_title titlu
+            from jobs 
+            order by job_title;
+            
+BEGIN
+    FOR i in t LOOP
+                ok:=0;
+                DBMS_OUTPUT.PUT(i.titlu);
+                DBMS_OUTPUT.NEW_LINE;
+                for j in te loop
+                        if i.titlu=j.titlu then 
+                                    DBMS_OUTPUT.PUT('              '||j.nume || '  ' || j.salariu);
+                                    DBMS_OUTPUT.NEW_LINE;
+                                    ok:=1;
+                        end if;   
+                end loop;
+                 if ok=0 then DBMS_OUTPUT.PUT('Niciun angajat care lucreaza pe acest job in prezent');
+                end if;    
+                DBMS_OUTPUT.PUT( '---------------------- ');
+                DBMS_OUTPUT.NEW_LINE;
+    END LOOP;
+END;
+/
+
+
+
+--c)   
+declare
+                ok number(2);
+BEGIN
+    FOR i in(select job_title titlu
+                    from jobs 
+                    order by job_title)  
+                LOOP
+                ok:=0;
+                DBMS_OUTPUT.PUT(i.titlu);
+                DBMS_OUTPUT.NEW_LINE;
+                for j in( select j.job_title titlu, e.last_name nume, e.salary salariu
+                                from emp e,jobs j
+                                where j.job_id=e.job_id
+                                order by j.job_title) 
+                loop
+                        if i.titlu=j.titlu then 
+                                    DBMS_OUTPUT.PUT('              '||j.nume || '  ' || j.salariu);
+                                    DBMS_OUTPUT.NEW_LINE;
+                                    ok:=1;
+                        end if;   
+                end loop;
+                 if ok=0 then DBMS_OUTPUT.PUT('Niciun angajat care lucreaza pe acest job in prezent');
+                end if;    
+                DBMS_OUTPUT.PUT( '---------------------- ');
+                DBMS_OUTPUT.NEW_LINE;
+    END LOOP;
+END;
+/
+
+
+
+--d)
+
+DECLARE
+        TYPE refcursor IS REF CURSOR;   
+        cursor c is
+                        select job_title titlu,
+                        cursor (select e.last_name nume, e.salary salariu
+                                        from emp e,jobs j
+                                        where j.job_id=e.job_id and jo.job_id=j.job_id)
+                        from jobs jo
+                        order by job_title;
+                       
+        v_titlu_job  jobs.job_title%TYPE;
+        v_cursor refcursor;
+        v_nume emp.last_name%TYPE;
+        v_salariu emp.salary%TYPE;
+BEGIN
+        OPEN c;
+        LOOP
+                    FETCH c INTO v_titlu_job, v_cursor;
+                    EXIT WHEN c%NOTFOUND;
+                    DBMS_OUTPUT.PUT_LINE ('Job--> '||v_titlu_job);
+                    LOOP
+                            FETCH v_cursor INTO   v_nume,v_salariu;
+                            EXIT WHEN v_cursor%NOTFOUND;
+                            DBMS_OUTPUT.PUT_LINE ('                '||v_nume || '  '||v_salariu);
+                    END LOOP;
+                    DBMS_OUTPUT.PUT( '---------------------- ');
+                    DBMS_OUTPUT.NEW_LINE;
+        END LOOP;
+        CLOSE c;
+END;
+/
+
+
+
+===============================================================================
+
+--2.
+--a)
+declare
+    type titluri_jobs is table of jobs.job_title%type index by binary_integer;
+    type salarii_emp is table of emp.salary%type index by binary_integer; 
+    type nume_emp is table of emp.last_name%type index by binary_integer;
+    type numar is table of NUMBER(10,2) index by binary_integer;
+    ok number(2);
+    nr_ordine number(2);
+    j integer:=1;
+    tj titluri_jobs;  --titluri cu angajati
+    tt  titluri_jobs;   --toate titlurile distincte cu sau fara angajati
+    se salarii_emp;
+    ne nume_emp;
+    nr_ang numar;
+    salariu_lunar numar;
+    avg_sal numar;
+begin
+    select j.job_title , e.last_name, e.salary 
+    bulk collect into tj,ne,se
+    from emp e,jobs j
+    where j.job_id=e.job_id
+    order by j.job_title;
+    
+    select job_title,(select count(employee_id) 
+                                  from emp e
+                                where e.job_id=j.job_id),
+                                (select sum(salary) 
+                                  from emp e
+                                where e.job_id=j.job_id),
+                                (select avg(salary) 
+                                  from emp e
+                                where e.job_id=j.job_id)
+    bulk collect into tt,nr_ang, salariu_lunar,avg_sal
+    from jobs j
+    order by job_title;
+    
+    for i in tt.first..tt.last LOOP
+            ok:=0;
+            nr_ordine:=1;
+                
+            DBMS_OUTPUT.PUT( i|| ':    ' ||tt(i) || ' cu '||nr_ang(i)|| ' angajati, valoare lunara a tuturor salariilor: ' ||salariu_lunar(i));
+            DBMS_OUTPUT.NEW_LINE;
+            DBMS_OUTPUT.PUT(' si valoare medie a salariului:'|| avg_sal(i));
+            DBMS_OUTPUT.NEW_LINE;
+            while tj(j)=tt(i)  and  j<tj.count loop
+                        DBMS_OUTPUT.PUT('              '||nr_ordine||':  '||ne(j) || '  ' || se(j));
+                        DBMS_OUTPUT.NEW_LINE;
+                         j:=j+1;
+                        nr_ordine:=nr_ordine+1; 
+                         ok:=1;
+            end loop;
+            if ok=0 then DBMS_OUTPUT.PUT('Niciun angajat care lucreaza pe acest job in prezent');
+            end if;
+            DBMS_OUTPUT.PUT( '---------------------- ');
+            DBMS_OUTPUT.NEW_LINE;
+    END LOOP;
+    
+    
+    --indiferent de job
+     DBMS_OUTPUT.PUT( 'INDIFERENT DE JOB: ');
+    DBMS_OUTPUT.NEW_LINE;
+    select  count(employee_id) ,
+                                  sum(salary) ,
+                               avg(salary) 
+     bulk collect into nr_ang, salariu_lunar,avg_sal
+    from emp ;
+    
+    j:=nr_ang.first;
+  
+    DBMS_OUTPUT.PUT(  'Nr angajati:  '||nr_ang(j)|| ' angajati, valoare lunara a tuturor salariilor: ' ||salariu_lunar(j));
+    DBMS_OUTPUT.NEW_LINE;
+    DBMS_OUTPUT.PUT(' si valoare medie a salariului:'|| avg_sal(j));
+    DBMS_OUTPUT.NEW_LINE;
+end;
+/
+
+
+
+
+--b)
+DECLARE
+    ok number(2);
+    nr_ang number(4);
+    CURSOR te IS
+            select j.job_title titlu, e.last_name nume, e.salary salariu
+            from emp e,jobs j
+            where j.job_id=e.job_id
+            order by j.job_title;
+            
+     CURSOR t IS
+            select job_title titlu,(select count(employee_id) 
+                                                  from emp e
+                                                where e.job_id=j.job_id) nr_ang,
+                                                (select sum(salary) 
+                                                  from emp e
+                                                where e.job_id=j.job_id) total_sal,
+                                                (select avg(salary) 
+                                                  from emp e
+                                                where e.job_id=j.job_id) avg_sal
+            from jobs j
+            order by j.job_title;
+            
+            CURSOR indif IS
+                select  count(employee_id) nr_ang,
+                                  sum(salary) total_sal,
+                                cast (avg(salary) as decimal(10,2)) avg_sal 
+                from emp ;
+            
+BEGIN
+    FOR i in t LOOP
+                ok:=0;
+                nr_ang:=1;
+                DBMS_OUTPUT.PUT(i.titlu || ' cu '||i.nr_ang|| ' angajati, valoare lunara a tuturor salariilor: ' ||i.total_sal);
+                DBMS_OUTPUT.NEW_LINE;
+                DBMS_OUTPUT.PUT(' si valoare medie a salariului:'|| i.avg_sal);
+                DBMS_OUTPUT.NEW_LINE;
+                for j in te loop
+                        if i.titlu=j.titlu then 
+                                    DBMS_OUTPUT.PUT('              '||nr_ang||': '||j.nume || '  ' || j.salariu);
+                                    DBMS_OUTPUT.NEW_LINE;
+                                    ok:=1;
+                                    nr_ang:=nr_ang+1;
+                        end if;   
+                end loop;
+                 if ok=0 then DBMS_OUTPUT.PUT('Niciun angajat care lucreaza pe acest job in prezent');
+                end if;    
+                DBMS_OUTPUT.PUT( '---------------------- ');
+                DBMS_OUTPUT.NEW_LINE;
+    END LOOP;
+    DBMS_OUTPUT.PUT( 'INDIFERENT DE JOB: ');
+    DBMS_OUTPUT.NEW_LINE;
+     for i in indif loop
+                DBMS_OUTPUT.PUT(i.nr_ang|| ' angajati, valoare lunara a tuturor salariilor: ' ||i.total_sal);
+                DBMS_OUTPUT.NEW_LINE;
+                DBMS_OUTPUT.PUT(' si valoare medie a salariului: '|| i.avg_sal);
+                DBMS_OUTPUT.NEW_LINE;
+    end loop;
+END;
+/
+--c)
+
+--c)   
+declare
+                ok number(2);
+                nr_ang number(4);
+BEGIN
+    FOR i in(select job_title titlu,(select count(employee_id) 
+                                                  from emp e
+                                                where e.job_id=j.job_id) nr_ang,
+                                                (select sum(salary) 
+                                                  from emp e
+                                                where e.job_id=j.job_id) total_sal,
+                                                (select avg(salary) 
+                                                  from emp e
+                                                where e.job_id=j.job_id) avg_sal
+            from jobs j
+            order by j.job_title)  
+                LOOP
+                nr_ang:=1;
+                ok:=0;
+            DBMS_OUTPUT.PUT(i.titlu || ' cu '||i.nr_ang|| ' angajati, valoare lunara a tuturor salariilor: ' ||i.total_sal);
+                DBMS_OUTPUT.NEW_LINE;
+                DBMS_OUTPUT.PUT(' si valoare medie a salariului:'|| i.avg_sal);
+                DBMS_OUTPUT.NEW_LINE;
+                for j in( select j.job_title titlu, e.last_name nume, e.salary salariu
+                                from emp e,jobs j
+                                where j.job_id=e.job_id
+                                order by j.job_title) 
+                loop
+                        if i.titlu=j.titlu then 
+                                    DBMS_OUTPUT.PUT('              '||nr_ang||': '||j.nume || '  ' || j.salariu);
+                                    DBMS_OUTPUT.NEW_LINE;
+                                    ok:=1;
+                                    nr_ang:=nr_ang+1;
+                        end if;   
+                end loop;
+                 if ok=0 then DBMS_OUTPUT.PUT('Niciun angajat care lucreaza pe acest job in prezent');
+                end if;    
+                DBMS_OUTPUT.PUT( '---------------------- ');
+                DBMS_OUTPUT.NEW_LINE;
+    END LOOP;
+    
+    DBMS_OUTPUT.PUT( 'INDIFERENT DE JOB: ');
+    DBMS_OUTPUT.NEW_LINE; 
+     for i in (select  count(employee_id) nr_ang,
+                                  sum(salary) total_sal,
+                                cast (avg(salary) as decimal(10,2)) avg_sal 
+                from emp )
+    loop
+                DBMS_OUTPUT.PUT(i.nr_ang|| ' angajati, valoare lunara a tuturor salariilor: ' ||i.total_sal);
+                DBMS_OUTPUT.NEW_LINE;
+                DBMS_OUTPUT.PUT(' si valoare medie a salariului: '|| i.avg_sal);
+                DBMS_OUTPUT.NEW_LINE;
+    end loop;
+END;
+/
+
+
+--d)
+DECLARE
+        TYPE refcursor IS REF CURSOR;   
+        cursor c is
+                        select jo.job_title titlu,(select count(employee_id) 
+                                                  from emp e
+                                                where e.job_id=jo.job_id) ,
+                                                (select sum(salary) 
+                                                  from emp e
+                                                where e.job_id=jo.job_id) ,
+                                                (select avg(salary) 
+                                                  from emp e
+                                                where e.job_id=jo.job_id)   ,                       
+                        cursor (select e.last_name nume, e.salary salariu
+                                        from emp e,jobs j
+                                        where j.job_id=e.job_id and jo.job_id=j.job_id)
+                        from jobs jo
+                        order by job_title;
+        cursor c2 is
+                select  count(employee_id),
+                sum(salary) ,
+                avg(salary)
+                from emp;   
+                
+        v_titlu_job  jobs.job_title%TYPE;
+        v_cursor refcursor;
+        v_nume emp.last_name%TYPE;
+        v_salariu emp.salary%TYPE;
+        nr_ang2 number(4);
+        nr_ang number(4);
+        total_sal2 number(10);
+        avg_sal2 number(10);
+BEGIN
+        OPEN c;
+        LOOP
+                    FETCH c INTO v_titlu_job,nr_ang2,total_sal2,avg_sal2, v_cursor;
+                    EXIT WHEN c%NOTFOUND;
+                    nr_ang:=1;
+                    DBMS_OUTPUT.PUT('Job--> '||v_titlu_job|| ' cu '||nr_ang2|| ' angajati, valoare lunara a tuturor salariilor: ' ||total_sal2);
+                    DBMS_OUTPUT.NEW_LINE;
+                    DBMS_OUTPUT.PUT(' si valoare medie a salariului:'|| avg_sal2);
+                    DBMS_OUTPUT.NEW_LINE;   
+                    LOOP
+                            FETCH v_cursor INTO   v_nume,v_salariu;
+                            EXIT WHEN v_cursor%NOTFOUND;
+                            DBMS_OUTPUT.PUT_LINE ('                '||nr_ang||': '||v_nume || '  '||v_salariu);
+                            nr_ang:=nr_ang+1;
+                    END LOOP;
+                    DBMS_OUTPUT.PUT( '---------------------- ');
+                    DBMS_OUTPUT.NEW_LINE;
+        END LOOP;
+        CLOSE c;
+        
+        DBMS_OUTPUT.PUT( 'INDIFERENT DE JOB: ');
+        DBMS_OUTPUT.NEW_LINE; 
+        OPEN c2;
+        LOOP
+                    FETCH c2 INTO nr_ang2,total_sal2,avg_sal2;
+                    EXIT WHEN c2%NOTFOUND;
+                    nr_ang:=1;
+                    DBMS_OUTPUT.PUT(nr_ang2|| ' angajati, valoare lunara a tuturor salariilor: ' ||total_sal2);
+                    DBMS_OUTPUT.NEW_LINE;
+                    DBMS_OUTPUT.PUT(' si valoare medie a salariului:'|| avg_sal2);
+                    DBMS_OUTPUT.NEW_LINE;   
+        END LOOP;
+        CLOSE c2;
+END;
+/
+
+
+--3)
+--a)
+declare
+    type titluri_jobs is table of jobs.job_title%type index by binary_integer;
+    type salarii_emp is table of emp.salary%type index by binary_integer; 
+    type nume_emp is table of emp.last_name%type index by binary_integer;
+    type numar is table of NUMBER(10) index by binary_integer;
+    ok number(2);
+    nr_ordine number(2);
+    j integer:=1;
+    x integer:=1;
+    tj titluri_jobs;  --titluri cu angajati
+    tt  titluri_jobs;   --toate titlurile distincte cu sau fara angajati
+    se salarii_emp;
+    ne nume_emp;
+    nr_ang numar;
+    salariu_lunar numar;
+     salariu_lunar2 numar;
+    avg_sal numar;
+    comision numar;
+    procent number(4);
+begin
+    select j.job_title , e.last_name, e.salary 
+    bulk collect into tj,ne,se
+    from emp e,jobs j
+    where j.job_id=e.job_id
+    order by j.job_title;
+    
+    select job_title,(select count(employee_id) 
+                                  from emp e
+                                where e.job_id=j.job_id),
+                                (select sum(salary) 
+                                  from emp e
+                                where e.job_id=j.job_id),
+                                (select avg(salary) 
+                                  from emp e
+                                where e.job_id=j.job_id)
+    bulk collect into tt,nr_ang, salariu_lunar,avg_sal
+    from jobs j
+    order by job_title;
+    --indiferent de job
+    DBMS_OUTPUT.PUT( 'INDIFERENT DE JOB: ');
+    DBMS_OUTPUT.NEW_LINE;
+   select sum(salary) ,sum(salary*nvl(commission_pct,0))                
+    bulk collect into salariu_lunar2,comision
+    from emp ;
+    
+    x:=salariu_lunar2.first;
+    DBMS_OUTPUT.PUT( 'Suma totală alocată lunar pentru plata salariilor și a comisioanelor tuturor angajaților: '||( salariu_lunar2(x)+comision(x)));
+    DBMS_OUTPUT.NEW_LINE;
+    
+    for i in tt.first..tt.last LOOP
+            ok:=0;
+            nr_ordine:=1;
+            DBMS_OUTPUT.PUT( i|| ':    ' ||tt(i) || ' cu '||nr_ang(i)|| ' angajati, valoare lunara a tuturor salariilor: ' ||salariu_lunar(i));
+            DBMS_OUTPUT.NEW_LINE;
+            DBMS_OUTPUT.PUT(' si valoare medie a salariului:'|| avg_sal(i));
+            DBMS_OUTPUT.NEW_LINE;
+            
+            while tj(j)=tt(i)  and  j<tj.count loop
+                        procent:=se(j)*100/( salariu_lunar2(x)+comision(x));
+                        DBMS_OUTPUT.PUT('              '||nr_ordine||':  '||ne(j) || '  ' || se(j) ||',procent: '|| procent||'%');
+                        DBMS_OUTPUT.NEW_LINE;
+                         j:=j+1;
+                        nr_ordine:=nr_ordine+1; 
+                         ok:=1;
+            end loop;
+            if ok=0 then DBMS_OUTPUT.PUT('Niciun angajat care lucreaza pe acest job in prezent');
+            end if;
+            DBMS_OUTPUT.PUT( '---------------------- ');
+            DBMS_OUTPUT.NEW_LINE;
+    END LOOP;
+end;
+/
+
+--b)
+DECLARE
+    ok number(2);
+    nr_ang number(4);
+    procent number(4,2);
+    CURSOR te IS
+            select j.job_title titlu, e.last_name nume, e.salary salariu
+            from emp e,jobs j
+            where j.job_id=e.job_id
+            order by j.job_title;
+            
+     CURSOR t IS
+            select job_title titlu,(select count(employee_id) 
+                                                  from emp e
+                                                where e.job_id=j.job_id) nr_ang,
+                                                (select sum(salary) 
+                                                  from emp e
+                                                where e.job_id=j.job_id) total_sal,
+                                                (select avg(salary) 
+                                                  from emp e
+                                                where e.job_id=j.job_id) avg_sal
+            from jobs j
+            order by j.job_title;
+            
+            CURSOR indif IS
+                 select sum(salary) t_sal ,sum(salary*nvl(commission_pct,0))t_com
+                from emp ;
+            
+BEGIN
+     DBMS_OUTPUT.PUT( 'INDIFERENT DE JOB: ');
+    DBMS_OUTPUT.NEW_LINE;
+     for i in indif loop
+                DBMS_OUTPUT.PUT('Suma totală alocată lunar pentru plata salariilor și a comisioanelor tuturor angajaților: '||(i.t_sal+i.t_com));
+                DBMS_OUTPUT.NEW_LINE;
+    end loop;
+    
+    FOR i in t LOOP
+                ok:=0;
+                nr_ang:=1;
+                DBMS_OUTPUT.PUT(i.titlu || ' cu '||i.nr_ang|| ' angajati, valoare lunara a tuturor salariilor: ' ||i.total_sal);
+                DBMS_OUTPUT.NEW_LINE;
+                DBMS_OUTPUT.PUT(' si valoare medie a salariului:'|| i.avg_sal);
+                DBMS_OUTPUT.NEW_LINE;
+                for j in te loop
+                        if i.titlu=j.titlu then 
+                                    for i in indif loop
+                                                procent:=j.salariu*100/( i.t_sal+i.t_com);
+                                    end loop;
+                                    DBMS_OUTPUT.PUT('              '||nr_ang||': '||j.nume || '  ' || j.salariu|| '  procent:    '|| procent||'%');
+                                    DBMS_OUTPUT.NEW_LINE;
+                                    ok:=1;
+                                    nr_ang:=nr_ang+1;
+                        end if;   
+                end loop;
+                 if ok=0 then DBMS_OUTPUT.PUT('Niciun angajat care lucreaza pe acest job in prezent');
+                end if;    
+                DBMS_OUTPUT.PUT( '---------------------- ');
+                DBMS_OUTPUT.NEW_LINE;
+    END LOOP;
+   
+END;
+/
+
+
+--c)   
+declare
+                ok number(2);
+                nr_ang number(4);
+                procent number(4,2);
+BEGIN
+    DBMS_OUTPUT.PUT( 'INDIFERENT DE JOB: ');
+    DBMS_OUTPUT.NEW_LINE; 
+     for i in (select   sum(salary) total_sal,
+                                sum(salary*nvl(commission_pct,0)) t_com
+                from emp )
+    loop
+                DBMS_OUTPUT.PUT('Suma totală alocată lunar pentru plata salariilor și a comisioanelor tuturor angajaților: '||(i.total_sal+i.t_com));
+                DBMS_OUTPUT.NEW_LINE;
+    end loop;
+    
+    FOR i in(select job_title titlu,(select count(employee_id) 
+                                                  from emp e
+                                                where e.job_id=j.job_id) nr_ang,
+                                                (select sum(salary) 
+                                                  from emp e
+                                                where e.job_id=j.job_id) total_sal,
+                                                (select avg(salary) 
+                                                  from emp e
+                                                where e.job_id=j.job_id) avg_sal
+            from jobs j
+            order by j.job_title)  
+                LOOP
+                nr_ang:=1;
+                ok:=0;
+            DBMS_OUTPUT.PUT(i.titlu || ' cu '||i.nr_ang|| ' angajati, valoare lunara a tuturor salariilor: ' ||i.total_sal);
+                DBMS_OUTPUT.NEW_LINE;
+                DBMS_OUTPUT.PUT(' si valoare medie a salariului:'|| i.avg_sal);
+                DBMS_OUTPUT.NEW_LINE;
+                for j in( select j.job_title titlu, e.last_name nume, e.salary salariu
+                                from emp e,jobs j
+                                where j.job_id=e.job_id
+                                order by j.job_title) 
+                loop
+                        if i.titlu=j.titlu then 
+                                  for x in (select   sum(salary) total_sal,sum(salary*nvl(commission_pct,0)) t_com
+                                                from emp )
+                                    loop
+                                                procent:=j.salariu*100/( x.total_sal+x.t_com);
+                                    end loop;
+                                    DBMS_OUTPUT.PUT('              '||nr_ang||': '||j.nume || '  ' || j.salariu|| '  procent:    '|| procent||'%');
+                                    DBMS_OUTPUT.NEW_LINE;
+                                    ok:=1;
+                                    nr_ang:=nr_ang+1;
+                        end if;   
+                end loop;
+                 if ok=0 then DBMS_OUTPUT.PUT('Niciun angajat care lucreaza pe acest job in prezent');
+                end if;    
+                DBMS_OUTPUT.PUT( '---------------------- ');
+                DBMS_OUTPUT.NEW_LINE;
+    END LOOP;
+    
+    
+END;
+/
+
+--d)
+DECLARE
+        TYPE refcursor IS REF CURSOR;   
+        cursor c is
+                        select jo.job_title titlu,(select count(employee_id) 
+                                                  from emp e
+                                                where e.job_id=jo.job_id) ,
+                                                (select sum(salary) 
+                                                  from emp e
+                                                where e.job_id=jo.job_id) ,
+                                                (select avg(salary) 
+                                                  from emp e
+                                                where e.job_id=jo.job_id)   ,                       
+                        cursor (select e.last_name nume, e.salary salariu
+                                        from emp e,jobs j
+                                        where j.job_id=e.job_id and jo.job_id=j.job_id)
+                        from jobs jo
+                        order by job_title;
+        cursor c2 is
+                select   sum(salary) total_sal,
+                                sum(salary*nvl(commission_pct,0)) t_com
+                from emp;
+                
+        v_titlu_job  jobs.job_title%TYPE;
+        v_cursor refcursor;
+        v_nume emp.last_name%TYPE;
+        v_salariu emp.salary%TYPE;
+        nr_ang2 number(4);
+        nr_ang number(4);
+        total_sal2 number(10);
+        avg_sal2 number(10,2);
+        total_sal22 number(10);
+        avg_sal22 number(10,2);
+        procent number(4,2);
+BEGIN
+        DBMS_OUTPUT.PUT( 'INDIFERENT DE JOB: ');
+        DBMS_OUTPUT.NEW_LINE; 
+        OPEN c2;
+        LOOP
+                    FETCH c2 INTO total_sal2,avg_sal2;
+                    EXIT WHEN c2%NOTFOUND;
+                    DBMS_OUTPUT.PUT('Suma totală alocată lunar pentru plata salariilor și a comisioanelor tuturor angajaților: '||(total_sal2+avg_sal2));
+                    DBMS_OUTPUT.NEW_LINE;
+        END LOOP;
+        CLOSE c2;
+        
+        OPEN c;
+        LOOP
+                    FETCH c INTO v_titlu_job,nr_ang2,total_sal2,avg_sal2, v_cursor;
+                    EXIT WHEN c%NOTFOUND;
+                    nr_ang:=1;
+                    DBMS_OUTPUT.PUT('Job--> '||v_titlu_job|| ' cu '||nr_ang2|| ' angajati, valoare lunara a tuturor salariilor: ' ||total_sal2);
+                    DBMS_OUTPUT.NEW_LINE;
+                    DBMS_OUTPUT.PUT(' si valoare medie a salariului:'|| avg_sal2);
+                    DBMS_OUTPUT.NEW_LINE;   
+                    LOOP
+                            FETCH v_cursor INTO   v_nume,v_salariu;
+                            EXIT WHEN v_cursor%NOTFOUND;
+                            
+                            OPEN c2;
+                            LOOP
+                                        FETCH c2 INTO total_sal22,avg_sal22;
+                                        EXIT WHEN c2%NOTFOUND;
+                                        procent:=v_salariu*100/(total_sal22+avg_sal22);
+                            END LOOP;
+                             CLOSE c2;
+                             
+                            DBMS_OUTPUT.PUT_LINE ('                '||nr_ang||': '||v_nume || '  '||v_salariu|| '  procent:    '|| procent||'%');
+                            nr_ang:=nr_ang+1;
+                    END LOOP;
+                    DBMS_OUTPUT.PUT( '---------------------- ');
+                    DBMS_OUTPUT.NEW_LINE;
+        END LOOP;
+        CLOSE c;
+        
+END;
+/
+
+
+
+
+--4)
+--a)
+declare
+    type titluri_jobs is table of jobs.job_title%type index by binary_integer;
+    type salarii_emp is table of emp.salary%type index by binary_integer; 
+    type nume_emp is table of emp.last_name%type index by binary_integer;
+    type numar is table of NUMBER(10) index by binary_integer;
+    ok number(2);
+    nr_ordine number(2);
+    j integer:=1;
+    x integer:=1;
+    tj titluri_jobs;  --titluri cu angajati
+    tt  titluri_jobs;   --toate titlurile distincte cu sau fara angajati
+    se salarii_emp;
+    ne nume_emp;
+    nr_ang numar;
+    salariu_lunar numar;
+     salariu_lunar2 numar;
+    avg_sal numar;
+    comision numar;
+    procent number(4);
+begin
+    select  j.job_title , e.last_name, e.salary 
+    bulk collect into tj,ne,se
+    from emp e,jobs j
+    where j.job_id=e.job_id 
+    order by j.job_title,e.salary;
+    
+    select job_title,(select count(employee_id) 
+                                  from emp e
+                                where e.job_id=j.job_id),
+                                (select sum(salary) 
+                                  from emp e
+                                where e.job_id=j.job_id),
+                                (select avg(salary) 
+                                  from emp e
+                                where e.job_id=j.job_id)
+    bulk collect into tt,nr_ang, salariu_lunar,avg_sal
+    from jobs j
+    order by job_title;
+    --indiferent de job
+    DBMS_OUTPUT.PUT( 'INDIFERENT DE JOB: ');
+    DBMS_OUTPUT.NEW_LINE;
+   select sum(salary) ,sum(salary*nvl(commission_pct,0))                
+    bulk collect into salariu_lunar2,comision
+    from emp ;
+    
+    x:=salariu_lunar2.first;
+    DBMS_OUTPUT.PUT( 'Suma totală alocată lunar pentru plata salariilor și a comisioanelor tuturor angajaților: '||( salariu_lunar2(x)+comision(x)));
+    DBMS_OUTPUT.NEW_LINE;
+    
+    for i in tt.first..tt.last LOOP
+            ok:=0;
+            nr_ordine:=1;
+            DBMS_OUTPUT.PUT( i|| ':    ' ||tt(i) || ' cu '||nr_ang(i)|| ' angajati, valoare lunara a tuturor salariilor: ' ||salariu_lunar(i));
+            DBMS_OUTPUT.NEW_LINE;
+            DBMS_OUTPUT.PUT(' si valoare medie a salariului:'|| avg_sal(i));
+            DBMS_OUTPUT.NEW_LINE;
+            
+            while tj(j)=tt(i)  and  j<tj.count  loop
+                        if nr_ordine>5 then exit;
+                        end if;
+                        procent:=se(j)*100/( salariu_lunar2(x)+comision(x));
+                        DBMS_OUTPUT.PUT('              '||nr_ordine||':  '||ne(j) || '  ' || se(j) ||',procent: '|| procent||'%');
+                        DBMS_OUTPUT.NEW_LINE;
+                         j:=j+1;
+                        nr_ordine:=nr_ordine+1; 
+                        ok:=1;
+            end loop;
+            if ok=0 then DBMS_OUTPUT.PUT('Niciun angajat care lucreaza pe acest job in prezent');
+             DBMS_OUTPUT.NEW_LINE;
+            end if;
+            if nr_ordine<6 then  DBMS_OUTPUT.PUT('              Mai putin de 5 angajati');
+             DBMS_OUTPUT.NEW_LINE;
+            end if;
+            DBMS_OUTPUT.PUT( '---------------------- ');
+            DBMS_OUTPUT.NEW_LINE;
+    END LOOP;
+end;
+/
+
+--b)
+DECLARE
+    ok number(2);
+    nr_ang number(4);
+    procent number(4,2);
+    CURSOR te IS
+            select j.job_title titlu, e.last_name nume, e.salary salariu
+            from emp e,jobs j
+            where j.job_id=e.job_id
+            order by j.job_title,salariu;
+            
+     CURSOR t IS
+            select job_title titlu,(select count(employee_id) 
+                                                  from emp e
+                                                where e.job_id=j.job_id) nr_ang,
+                                                (select sum(salary) 
+                                                  from emp e
+                                                where e.job_id=j.job_id) total_sal,
+                                                (select avg(salary) 
+                                                  from emp e
+                                                where e.job_id=j.job_id) avg_sal
+            from jobs j
+            order by j.job_title;
+            
+            CURSOR indif IS
+                 select sum(salary) t_sal ,sum(salary*nvl(commission_pct,0))t_com
+                from emp ;
+            
+BEGIN
+     DBMS_OUTPUT.PUT( 'INDIFERENT DE JOB: ');
+    DBMS_OUTPUT.NEW_LINE;
+     for i in indif loop
+                DBMS_OUTPUT.PUT('Suma totală alocată lunar pentru plata salariilor și a comisioanelor tuturor angajaților: '||(i.t_sal+i.t_com));
+                DBMS_OUTPUT.NEW_LINE;
+    end loop;
+    
+    FOR i in t LOOP
+                ok:=0;
+                nr_ang:=1;
+                DBMS_OUTPUT.PUT(i.titlu || ' cu '||i.nr_ang|| ' angajati, valoare lunara a tuturor salariilor: ' ||i.total_sal);
+                DBMS_OUTPUT.NEW_LINE;
+                DBMS_OUTPUT.PUT(' si valoare medie a salariului:'|| i.avg_sal);
+                DBMS_OUTPUT.NEW_LINE;
+                for j in te loop
+                if nr_ang>5 then exit;
+                end if;
+                        if i.titlu=j.titlu  then 
+                                    for i in indif loop
+                                                procent:=j.salariu*100/( i.t_sal+i.t_com);
+                                    end loop;
+                                    DBMS_OUTPUT.PUT('              '||nr_ang||': '||j.nume || '  ' || j.salariu|| '  procent:    '|| procent||'%');
+                                    DBMS_OUTPUT.NEW_LINE;
+                                    ok:=1;
+                                    nr_ang:=nr_ang+1;
+                        end if;   
+                end loop;
+                 if ok=0 then DBMS_OUTPUT.PUT('Niciun angajat care lucreaza pe acest job in prezent');
+                end if;    
+                if nr_ang<6 then  DBMS_OUTPUT.PUT('              Mai putin de 5 angajati');
+             DBMS_OUTPUT.NEW_LINE;
+            end if;
+                DBMS_OUTPUT.PUT( '---------------------- ');
+                DBMS_OUTPUT.NEW_LINE;
+    END LOOP;
+   
+END;
+/
+
+
+--c)   
+declare
+                ok number(2);
+                nr_ang number(4);
+                procent number(4,2);
+BEGIN
+    DBMS_OUTPUT.PUT( 'INDIFERENT DE JOB: ');
+    DBMS_OUTPUT.NEW_LINE; 
+     for i in (select   sum(salary) total_sal,
+                                sum(salary*nvl(commission_pct,0)) t_com
+                from emp )
+    loop
+                DBMS_OUTPUT.PUT('Suma totală alocată lunar pentru plata salariilor și a comisioanelor tuturor angajaților: '||(i.total_sal+i.t_com));
+                DBMS_OUTPUT.NEW_LINE;
+    end loop;
+    
+    FOR i in(select job_title titlu,(select count(employee_id) 
+                                                  from emp e
+                                                where e.job_id=j.job_id) nr_ang,
+                                                (select sum(salary) 
+                                                  from emp e
+                                                where e.job_id=j.job_id) total_sal,
+                                                (select avg(salary) 
+                                                  from emp e
+                                                where e.job_id=j.job_id) avg_sal
+            from jobs j
+            order by j.job_title)  
+                LOOP
+                nr_ang:=1;
+                ok:=0;
+            DBMS_OUTPUT.PUT(i.titlu || ' cu '||i.nr_ang|| ' angajati, valoare lunara a tuturor salariilor: ' ||i.total_sal);
+                DBMS_OUTPUT.NEW_LINE;
+                DBMS_OUTPUT.PUT(' si valoare medie a salariului:'|| i.avg_sal);
+                DBMS_OUTPUT.NEW_LINE;
+                for j in( select j.job_title titlu, e.last_name nume, e.salary salariu
+                                from emp e,jobs j
+                                where j.job_id=e.job_id
+                                order by j.job_title,salariu) 
+                loop
+                        if i.titlu=j.titlu then 
+                                  for x in (select   sum(salary) total_sal,sum(salary*nvl(commission_pct,0)) t_com
+                                                from emp )
+                                    loop
+                                                procent:=j.salariu*100/( x.total_sal+x.t_com);
+                                    end loop;
+                                    DBMS_OUTPUT.PUT('              '||nr_ang||': '||j.nume || '  ' || j.salariu|| '  procent:    '|| procent||'%');
+                                    DBMS_OUTPUT.NEW_LINE;
+                                    ok:=1;
+                                    nr_ang:=nr_ang+1;
+                                    if nr_ang=6 then exit;
+                                    end if;
+                        end if;   
+                end loop;
+                 if ok=0 then DBMS_OUTPUT.PUT('Niciun angajat care lucreaza pe acest job in prezent');
+                end if;    
+                if nr_ang<6 then  DBMS_OUTPUT.PUT('              Mai putin de 5 angajati');
+                    DBMS_OUTPUT.NEW_LINE;
+                    end if;
+                DBMS_OUTPUT.PUT( '---------------------- ');
+                DBMS_OUTPUT.NEW_LINE;
+    END LOOP;
+    
+    
+END;
+/
+
+--d)
+DECLARE
+        TYPE refcursor IS REF CURSOR;   
+        cursor c is
+                        select jo.job_title titlu,(select count(employee_id) 
+                                                  from emp e
+                                                where e.job_id=jo.job_id) ,
+                                                (select sum(salary) 
+                                                  from emp e
+                                                where e.job_id=jo.job_id) ,
+                                                (select avg(salary) 
+                                                  from emp e
+                                                where e.job_id=jo.job_id)   ,                       
+                        cursor (select e.last_name nume, e.salary salariu
+                                        from emp e,jobs j
+                                        where j.job_id=e.job_id and jo.job_id=j.job_id
+                                        order by salariu)
+                        from jobs jo
+                        order by job_title;
+        cursor c2 is
+                select   sum(salary) total_sal,
+                                sum(salary*nvl(commission_pct,0)) t_com
+                from emp;
+                
+        v_titlu_job  jobs.job_title%TYPE;
+        v_cursor refcursor;
+        v_nume emp.last_name%TYPE;
+        v_salariu emp.salary%TYPE;
+        nr_ang2 number(4);
+        nr_ang number(4);
+        total_sal2 number(10);
+        avg_sal2 number(10,2);
+        total_sal22 number(10);
+        avg_sal22 number(10,2);
+        procent number(4,2);
+BEGIN
+        DBMS_OUTPUT.PUT( 'INDIFERENT DE JOB: ');
+        DBMS_OUTPUT.NEW_LINE; 
+        OPEN c2;
+        LOOP
+                    FETCH c2 INTO total_sal2,avg_sal2;
+                    EXIT WHEN c2%NOTFOUND;
+                    DBMS_OUTPUT.PUT('Suma totală alocată lunar pentru plata salariilor și a comisioanelor tuturor angajaților: '||(total_sal2+avg_sal2));
+                    DBMS_OUTPUT.NEW_LINE;
+        END LOOP;
+        CLOSE c2;
+        
+        OPEN c;
+        LOOP
+                    FETCH c INTO v_titlu_job,nr_ang2,total_sal2,avg_sal2, v_cursor;
+                    EXIT WHEN c%NOTFOUND;
+                    nr_ang:=1;
+                    DBMS_OUTPUT.PUT('Job--> '||v_titlu_job|| ' cu '||nr_ang2|| ' angajati, valoare lunara a tuturor salariilor: ' ||total_sal2);
+                    DBMS_OUTPUT.NEW_LINE;
+                    DBMS_OUTPUT.PUT(' si valoare medie a salariului:'|| avg_sal2);
+                    DBMS_OUTPUT.NEW_LINE;   
+                    LOOP
+                            FETCH v_cursor INTO   v_nume,v_salariu;
+                            EXIT WHEN v_cursor%ROWCOUNT>5 OR v_cursor%NOTFOUND;
+                            
+                            OPEN c2;
+                            LOOP
+                                        FETCH c2 INTO total_sal22,avg_sal22;
+                                        EXIT WHEN c2%NOTFOUND;
+                                        procent:=v_salariu*100/(total_sal22+avg_sal22);
+                            END LOOP;
+                            
+                             CLOSE c2;
+                             
+                            DBMS_OUTPUT.PUT_LINE ('                '||nr_ang||': '||v_nume || '  '||v_salariu|| '  procent:    '|| procent||'%');
+                            nr_ang:=nr_ang+1;
+                    END LOOP;
+                    if v_cursor%rowcount<5 then  DBMS_OUTPUT.PUT_LINE('                '||'Mai putin de 5 angajati');
+                    end if;
+                    DBMS_OUTPUT.PUT( '---------------------- ');
+                    DBMS_OUTPUT.NEW_LINE;
+        END LOOP;
+        CLOSE c;
+        
+END;
+/
+--5
+--a)
+declare
+    type titluri_jobs is table of jobs.job_title%type index by binary_integer;
+    type salarii_emp is table of emp.salary%type index by binary_integer; 
+    type nume_emp is table of emp.last_name%type index by binary_integer;
+    type numar is table of NUMBER(10) index by binary_integer;
+    ok number(2);
+    nr_ordine number(2);
+    j integer:=1;
+    x integer:=1;
+    tj titluri_jobs;  --titluri cu angajati
+    tt  titluri_jobs;   --toate titlurile distincte cu sau fara angajati
+    se salarii_emp;
+    ne nume_emp;
+    nr_ang numar;
+    salariu_lunar numar;
+     salariu_lunar2 numar;
+    avg_sal numar;
+    comision numar;
+    procent number(4);
+    nr_top number(2);
+begin
+    select  j.job_title , e.last_name, e.salary 
+    bulk collect into tj,ne,se
+    from emp e,jobs j
+    where j.job_id=e.job_id 
+    order by j.job_title,e.salary;
+    
+    select job_title,(select count(employee_id) 
+                                  from emp e
+                                where e.job_id=j.job_id),
+                                (select sum(salary) 
+                                  from emp e
+                                where e.job_id=j.job_id),
+                                (select avg(salary) 
+                                  from emp e
+                                where e.job_id=j.job_id)
+    bulk collect into tt,nr_ang, salariu_lunar,avg_sal
+    from jobs j
+    order by job_title;
+    --indiferent de job
+    DBMS_OUTPUT.PUT( 'INDIFERENT DE JOB: ');
+    DBMS_OUTPUT.NEW_LINE;
+   select sum(salary) ,sum(salary*nvl(commission_pct,0))                
+    bulk collect into salariu_lunar2,comision
+    from emp ;
+    
+    x:=salariu_lunar2.first;
+    DBMS_OUTPUT.PUT( 'Suma totală alocată lunar pentru plata salariilor și a comisioanelor tuturor angajaților: '||( salariu_lunar2(x)+comision(x)));
+    DBMS_OUTPUT.NEW_LINE;
+    
+    for i in tt.first..tt.last LOOP
+            ok:=0;
+            nr_ordine:=1;
+            nr_top:=1;
+            DBMS_OUTPUT.PUT( i|| ':    ' ||tt(i) || ' cu '||nr_ang(i)|| ' angajati, valoare lunara a tuturor salariilor: ' ||salariu_lunar(i));
+            DBMS_OUTPUT.NEW_LINE;
+            DBMS_OUTPUT.PUT(' si valoare medie a salariului:'|| avg_sal(i));
+            DBMS_OUTPUT.NEW_LINE;
+            
+            while tj(j)=tt(i)  and  j<tj.count  loop
+                        if nr_ordine>5 then exit;
+                        end if;
+                        procent:=se(j)*100/( salariu_lunar2(x)+comision(x));
+                        DBMS_OUTPUT.PUT('              '||nr_top||':  '||ne(j) || '  ' || se(j) ||',procent: '|| procent||'%');
+                        DBMS_OUTPUT.NEW_LINE;
+                         j:=j+1;
+                        nr_ordine:=nr_ordine+1; 
+                        if se(j)!=se(se.prior(j)) then nr_top:=nr_top+1;
+                        end if;
+                        ok:=1;
+            end loop;
+            if ok=0 then DBMS_OUTPUT.PUT('Niciun angajat care lucreaza pe acest job in prezent');
+             DBMS_OUTPUT.NEW_LINE;
+            end if;
+            if nr_ordine<6 then  DBMS_OUTPUT.PUT('              Mai putin de 5 angajati');
+             DBMS_OUTPUT.NEW_LINE;
+            end if;
+            DBMS_OUTPUT.PUT( '---------------------- ');
+            DBMS_OUTPUT.NEW_LINE;
+    END LOOP;
+end;
+/
+--b)
+DECLARE
+    ok number(2);
+    nr_ang number(4);
+    procent number(4,2);
+    nr_top number(4);
+    sal_anterior emp.salary%type;
+    CURSOR te IS
+            select j.job_title titlu, e.last_name nume, e.salary salariu
+            from emp e,jobs j
+            where j.job_id=e.job_id
+            order by j.job_title,salariu;
+            
+     CURSOR t IS
+            select job_title titlu,(select count(employee_id) 
+                                                  from emp e
+                                                where e.job_id=j.job_id) nr_ang,
+                                                (select sum(salary) 
+                                                  from emp e
+                                                where e.job_id=j.job_id) total_sal,
+                                                (select avg(salary) 
+                                                  from emp e
+                                                where e.job_id=j.job_id) avg_sal
+            from jobs j
+            order by j.job_title;
+            
+            CURSOR indif IS
+                 select sum(salary) t_sal ,sum(salary*nvl(commission_pct,0))t_com
+                from emp ;
+            
+BEGIN
+     DBMS_OUTPUT.PUT( 'INDIFERENT DE JOB: ');
+    DBMS_OUTPUT.NEW_LINE;
+     for i in indif loop
+                DBMS_OUTPUT.PUT('Suma totală alocată lunar pentru plata salariilor și a comisioanelor tuturor angajaților: '||(i.t_sal+i.t_com));
+                DBMS_OUTPUT.NEW_LINE;
+    end loop;
+    
+    FOR i in t LOOP
+                ok:=0;
+                nr_ang:=1;
+                nr_top:=0;
+                DBMS_OUTPUT.PUT(i.titlu || ' cu '||i.nr_ang|| ' angajati, valoare lunara a tuturor salariilor: ' ||i.total_sal);
+                DBMS_OUTPUT.NEW_LINE;
+                DBMS_OUTPUT.PUT(' si valoare medie a salariului:'|| i.avg_sal);
+                DBMS_OUTPUT.NEW_LINE;
+               
+                for j in te loop
+                if nr_top>5 then exit;
+                end if;
+                        if i.titlu=j.titlu  then 
+                                    for i in indif loop
+                                                procent:=j.salariu*100/( i.t_sal+i.t_com);
+                                    end loop;
+                                    if sal_anterior!=j.salariu then nr_top:=nr_top+1;
+                                    end if;
+                                    DBMS_OUTPUT.PUT('              '||nr_top||': '||j.nume || '  ' || j.salariu|| '  procent:    '|| procent||'%');
+                                    DBMS_OUTPUT.NEW_LINE;
+                                    ok:=1;
+                                    nr_ang:=nr_ang+1;
+                                    sal_anterior:=j.salariu;
+                        end if;   
+                end loop;
+                 if ok=0 then DBMS_OUTPUT.PUT('Niciun angajat care lucreaza pe acest job in prezent');
+                end if;    
+                if nr_ang<6 then  DBMS_OUTPUT.PUT('              Mai putin de 5 angajati');
+             DBMS_OUTPUT.NEW_LINE;
+            end if;
+                DBMS_OUTPUT.PUT( '---------------------- ');
+                DBMS_OUTPUT.NEW_LINE;
+    END LOOP;
+   
+END;
+/
+
+
+
+--c)   
+declare
+                ok number(2);
+                nr_ang number(4);
+                procent number(4,2);
+                sal_anterior emp.salary%type;
+                nr_top number(4);
+BEGIN
+    DBMS_OUTPUT.PUT( 'INDIFERENT DE JOB: ');
+    DBMS_OUTPUT.NEW_LINE; 
+     for i in (select   sum(salary) total_sal,
+                                sum(salary*nvl(commission_pct,0)) t_com
+                from emp )
+    loop
+                DBMS_OUTPUT.PUT('Suma totală alocată lunar pentru plata salariilor și a comisioanelor tuturor angajaților: '||(i.total_sal+i.t_com));
+                DBMS_OUTPUT.NEW_LINE;
+    end loop;
+    
+    FOR i in(select job_title titlu,(select count(employee_id) 
+                                                  from emp e
+                                                where e.job_id=j.job_id) nr_ang,
+                                                (select sum(salary) 
+                                                  from emp e
+                                                where e.job_id=j.job_id) total_sal,
+                                                (select avg(salary) 
+                                                  from emp e
+                                                where e.job_id=j.job_id) avg_sal
+            from jobs j
+            order by j.job_title)  
+                LOOP
+                nr_ang:=1;
+                nr_top:=0;
+                sal_anterior:=0;
+                ok:=0;
+            DBMS_OUTPUT.PUT(i.titlu || ' cu '||i.nr_ang|| ' angajati, valoare lunara a tuturor salariilor: ' ||i.total_sal);
+                DBMS_OUTPUT.NEW_LINE;
+                DBMS_OUTPUT.PUT(' si valoare medie a salariului:'|| i.avg_sal);
+                DBMS_OUTPUT.NEW_LINE;
+                for j in( select j.job_title titlu, e.last_name nume, e.salary salariu
+                                from emp e,jobs j
+                                where j.job_id=e.job_id
+                                order by j.job_title,salariu) 
+                loop
+                        if i.titlu=j.titlu then 
+                                   if nr_top>4 then exit;
+                                 end if;
+                                  for x in (select   sum(salary) total_sal,sum(salary*nvl(commission_pct,0)) t_com
+                                                from emp )
+                                    loop
+                                                procent:=j.salariu*100/( x.total_sal+x.t_com);
+                                    end loop;
+                                    if sal_anterior!=j.salariu then nr_top:=nr_top+1;
+                                    end if;
+                                    DBMS_OUTPUT.PUT('              '||nr_top||': '||j.nume || '  ' || j.salariu|| '  procent:    '|| procent||'%');
+                                    DBMS_OUTPUT.NEW_LINE;
+                                    ok:=1;
+                                    nr_ang:=nr_ang+1;
+                                 
+                        end if;   
+                         sal_anterior:=j.salariu;
+                end loop;
+                 if ok=0 then DBMS_OUTPUT.PUT('Niciun angajat care lucreaza pe acest job in prezent');
+                end if;    
+                if nr_ang<6 then  DBMS_OUTPUT.PUT('              Mai putin de 5 angajati');
+                    DBMS_OUTPUT.NEW_LINE;
+                    end if;
+                DBMS_OUTPUT.PUT( '---------------------- ');
+                DBMS_OUTPUT.NEW_LINE;
+    END LOOP;
+    
+    
+END;
+/
+
+--d)
+DECLARE
+        TYPE refcursor IS REF CURSOR;   
+        cursor c is
+                        select jo.job_title titlu,(select count(employee_id) 
+                                                  from emp e
+                                                where e.job_id=jo.job_id) ,
+                                                (select sum(salary) 
+                                                  from emp e
+                                                where e.job_id=jo.job_id) ,
+                                                (select avg(salary) 
+                                                  from emp e
+                                                where e.job_id=jo.job_id)   ,                       
+                        cursor (select e.last_name nume, e.salary salariu
+                                        from emp e,jobs j
+                                        where j.job_id=e.job_id and jo.job_id=j.job_id
+                                        order by salariu)
+                        from jobs jo
+                        order by job_title;
+        cursor c2 is
+                select   sum(salary) total_sal,
+                                sum(salary*nvl(commission_pct,0)) t_com
+                from emp;
+                
+        v_titlu_job  jobs.job_title%TYPE;
+        v_cursor refcursor;
+        v_nume emp.last_name%TYPE;
+        v_salariu emp.salary%TYPE;
+        nr_ang2 number(4);
+        nr_ang number(4);
+        total_sal2 number(10);
+        avg_sal2 number(10,2);
+        total_sal22 number(10);
+        avg_sal22 number(10,2);
+        procent number(4,2);
+        nr_top number(4);
+        sal_anterior emp.salary%type;
+BEGIN
+        DBMS_OUTPUT.PUT( 'INDIFERENT DE JOB: ');
+        DBMS_OUTPUT.NEW_LINE; 
+        OPEN c2;
+        LOOP
+                    FETCH c2 INTO total_sal2,avg_sal2;
+                    EXIT WHEN c2%NOTFOUND;
+                    DBMS_OUTPUT.PUT('Suma totală alocată lunar pentru plata salariilor și a comisioanelor tuturor angajaților: '||(total_sal2+avg_sal2));
+                    DBMS_OUTPUT.NEW_LINE;
+        END LOOP;
+        CLOSE c2;
+        
+        OPEN c;
+        LOOP
+                    FETCH c INTO v_titlu_job,nr_ang2,total_sal2,avg_sal2, v_cursor;
+                    EXIT WHEN c%NOTFOUND;
+                    nr_ang:=1;
+                    nr_top:=0;
+                    sal_anterior:=0;
+                    DBMS_OUTPUT.PUT('Job--> '||v_titlu_job|| ' cu '||nr_ang2|| ' angajati, valoare lunara a tuturor salariilor: ' ||total_sal2);
+                    DBMS_OUTPUT.NEW_LINE;
+                    DBMS_OUTPUT.PUT(' si valoare medie a salariului:'|| avg_sal2);
+                    DBMS_OUTPUT.NEW_LINE;   
+                    LOOP
+                            FETCH v_cursor INTO   v_nume,v_salariu;
+                            EXIT WHEN  nr_top>4 or v_cursor%NOTFOUND;
+                            if sal_anterior!=v_salariu then nr_top:=nr_top+1;
+                            end if;
+                            OPEN c2;
+                            LOOP
+                                        FETCH c2 INTO total_sal22,avg_sal22;
+                                        EXIT WHEN c2%NOTFOUND;
+                                        procent:=v_salariu*100/(total_sal22+avg_sal22);
+                            END LOOP;
+                            
+                             CLOSE c2;
+                             
+                            DBMS_OUTPUT.PUT_LINE ('                '||nr_top||': '||v_nume || '  '||v_salariu|| '  procent:    '|| procent||'%');
+                            nr_ang:=nr_ang+1;
+                            sal_anterior:=v_salariu;
+                            
+                    END LOOP;
+                    if nr_ang<=5 then  DBMS_OUTPUT.PUT_LINE('                '||'Mai putin de 5 angajati');
+                    end if;
+                    DBMS_OUTPUT.PUT( '---------------------- ');
+                    DBMS_OUTPUT.NEW_LINE;
+        END LOOP;
+        CLOSE c;
+        
+END;
+/
+

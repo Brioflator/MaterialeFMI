@@ -1,0 +1,37 @@
+const express = require("express")
+const app = express();
+
+app.use('/post', express.urlencoded({ extended: true }));
+app.get('/', (req, res) => { res.sendFile(__dirname + "/p4.html")})
+
+app.post("/post", (req, res) => {
+    console.log(req.body);
+
+    let data = req.body;
+    let inpt1 = data.paritate;
+    let inpt2 = data.inp;
+    let parsed=inpt2.split(' ');
+
+    for(let i=0; i<parsed.length;i++)
+    {
+        let y=parseInt(parsed[i]);
+        if(typeof(y)=='NaN') res.send('imposibil');
+        if(inpt1 == 'p')
+        {
+            if(y%2==0)
+            {
+                res.write(y+' ');
+            }
+        }
+        if(inpt1 == 'i')
+        {
+            if(y%2==1)
+            res.write(y+' ');
+        }
+    }
+
+    res.end();
+
+})
+
+app.listen(8080, () => {console.log("Server on port 8080");})

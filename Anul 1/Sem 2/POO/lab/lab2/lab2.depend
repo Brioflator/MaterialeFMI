@@ -1,0 +1,6 @@
+# depslib dependency file v1.0
+1647971490 source:c:\users\bales\onedrive\facultate\anul 1\sem 2\poo\lab\lab2\main.cpp
+	<iostream>
+	<string.h>
+	<vector>
+

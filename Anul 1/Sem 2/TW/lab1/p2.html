@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+    window.onload = function () {
+        var k = new Date().getSeconds();
+        k=k%10+1;
+        cul = ["red", 'green', 'blue', 'pink', 'purple'];
+
+        for (let i = 0; i <= k; i++) {
+          let r = Math.floor(Math.random() * 5);
+          let p = document.createElement("div");
+          p.className = 'dreptunghi';
+          p.innerHTML = "Div "+i;
+          p.style.backgroundColor=cul[r];
+          document.body.appendChild(p);
+        }
+        let cls;
+        var clk = 0;
+        let container = document.getElementsByTagName("div");
+        for (let i = 0; i <= k; i++) {
+            clk=0;
+          container[i].addEventListener("click", (event) => {
+            cls = container[i].className;
+            clk += 1;
+            var div = document.getElementsByTagName('div');
+            div.innerHTML = "culoare div";
+            event.stopPropagation();
+            console.log(cls);
+            
+          });
+        }
+        window.addEventListener("click", (event) => {
+            let p = document.createElement("p");
+          p.className = 'counter';
+          p.innerHTML = clk;
+          document.body.appendChild(p);
+        });
+      };
+    </script>
+
+    <style>
+      .dreptunghi
+      {
+        height: 50px;
+        width: 50px;
+        border: 2px dotted blue;
+      }
+      </style>
+    
+</body>
+</head>

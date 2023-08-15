@@ -1,0 +1,159 @@
+@import url(https://fonts.googleapis.com/css?family=Red+Hat+Display&display=swap);
+
+html {
+  height: 100%;
+}
+body {
+  background-image: url(/HTML/order-summary-component-main/images/pattern-background-desktop.svg);
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-color: hsl(225, 100%, 94%);
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  margin-top: 100px;
+  font-family: "Red Hat Display", sans-serif;
+  font-size: 16px;
+}
+
+.hero {
+  border-top-left-radius: 15px;
+  border-top-right-radius: 15px;
+}
+
+.card {
+  background-color: white;
+  width: 450px;
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 15px hsl(225deg 100% 91%);
+}
+
+h1,
+.briefing,
+#CO,
+#PP {
+  text-align: center;
+}
+
+.payment {
+  display: flex;
+  align-items: center;
+  background-color: hsl(225, 100%, 98%);
+  border-radius: 10px;
+  padding: 15px;
+  margin: 20px 0;
+  height: 60px;
+}
+
+#icon {
+  flex-grow: 1;
+  width: 1%;
+  padding-right: 20px;
+  padding-left: 10px;
+}
+
+#C {
+  flex-grow: 1;
+  color: hsl(223, 47%, 23%);
+  font-weight: 900;
+}
+
+.money {
+  flex-grow: 2;
+  text-align: left;
+}
+
+.info {
+  padding: 40px;
+  padding-top: 30px;
+  text-align: center;
+}
+
+button {
+  width: 100%;
+}
+
+#AP {
+  margin-bottom: 5px;
+  padding-bottom: 0px;
+  font-size: 1.17em;
+  font-weight: bold;
+}
+#S {
+  margin-top: 0px;
+  padding-bottom: 0px;
+  color: hsl(224, 23%, 55%);
+  font-weight: 600;
+}
+
+.briefing {
+  padding-left: 10px;
+  padding-right: 10px;
+  color: hsl(224, 23%, 55%);
+}
+
+h1,
+#AP {
+  color: hsl(223, 47%, 23%);
+  font-weight: 900;
+}
+
+#PP {
+  background-color: hsl(245, 75%, 52%);
+  border-color: hsl(245, 75%, 52%);
+  border-radius: 10px;
+  height: 50px;
+  font-family: "Red Hat Display", sans-serif;
+  color: white;
+  font-weight: 800;
+  outline: none;
+  border: 0px;
+  margin-top: 20px;
+  margin-bottom: 30px;
+  box-shadow: 0 20px 15px hsl(225deg 100% 91%);
+}
+
+#CO {
+  outline: none;
+  text-decoration: none;
+  font-weight: 900;
+  color: hsl(224, 23%, 55%);
+}
+
+h1 {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+#PP:hover {
+  opacity: 50%;
+  animation-name: button-fade;
+  animation-duration: 1000ms;
+  animation-fill-mode: forwards;
+}
+
+#C:hover {
+  opacity: 50%;
+  text-decoration: none;
+  animation-name: change;
+  animation-duration: 1000ms;
+  animation-fill-mode: forwards;
+}
+
+#CO:hover {
+  color: hsl(223, 47%, 23%);
+}
+
+@keyframes button-fade {
+  100% {
+    background-color: hsla(245, 75%, 52%, 0.9);
+  }
+}
+
+@keyframes change {
+  100% {
+    color: hsla(245, 75%, 52%, 0.9);
+  }
+}

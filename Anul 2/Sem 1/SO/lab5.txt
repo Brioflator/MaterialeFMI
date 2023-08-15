@@ -1,0 +1,110 @@
+#include <stdio.h>
+#include <errno.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <sys/wait.h>
+#include <sys/mman.h>
+#include <fcntl.h>
+#define dim 4096
+//putere de doi si e marimea unei pagini de memorie
+
+int main(int argc,char* argv[]){
+    //apel basic pentru crearea unui obiect de memorie partajata
+    int shm_fd;
+    //numele obiectului
+    char *shm_name = "collatz";
+	
+    shm_fd = shm_open(shm_name, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+    
+    if(shm_fd == -1)
+    {
+        perror ("Problem with shm_open\n");
+        return errno;
+    }
+
+    int shm_size = argc * dim;
+    //definim dimensiunea cu ftruncate
+    //in acest caz, marim obiectul de la 0 la 4096 bytes
+    int ftrunc = ftruncate(shm_fd, shm_size);
+    //marim obiectul asociat descriptorului dat conform lui shm_size
+    if(ftrunc == -1)
+    {
+        perror("Problem with ftruncate\n");
+        //daca e problema cu ftruncate folosim shm_unlink ca sa stergem obiectul creat cu shm_open
+        shm_unlink(shm_name);
+        return errno;
+    }
+
+
+    printf("starting parent: %d\n", getpid());
+    for(int i = 1; i < argc; ++i)
+    {
+    	//mod tipic de creare a unui proces nou
+        pid_t pid = fork();
+        if(pid < 0)
+        {
+            perror("Didnt't Fork\n");
+            return errno;
+        } 
+        else if(pid == 0)  //instructiunile pentru copil
+        {
+            //punem pointerul la un offset de i*dim
+            //in fiecare zona de memorie la care pointam punem numerele necesare
+            //am definit zona a.i. sa putem sa scriem in ea
+            char * shm_ptr = mmap(NULL,dim, PROT_WRITE, MAP_SHARED, shm_fd, (i - 1) * dim);
+            
+            if(shm_ptr == MAP_FAILED)
+            {
+                perror("Problem with memory map in child process\n");
+                shm_unlink(shm_name);
+                return errno;
+            }
+
+	    //luam argumentele pe rand si facem collatz
+            int argmnt = atoi(argv[i]);
+            shm_ptr += sprintf(shm_ptr, "For number %d: ", argmnt);
+            shm_ptr += sprintf(shm_ptr,"%d ", argmnt);
+            //functia collatz
+            while(argmnt > 1)
+            {
+                if(argmnt % 2 == 1)
+                {
+                    argmnt = 3 * argmnt + 1;
+                } 
+                else
+                {
+                    argmnt = argmnt / 2;
+                }
+                shm_ptr += sprintf(shm_ptr, "%d ", argmnt);
+            }
+            shm_ptr += sprintf(shm_ptr,"\n");
+            printf("Done child with id = %d, parent id = %d\n", getpid(), getppid());
+            //nu mai avem nevoie de zona de memorie
+            munmap(shm_ptr, dim);
+            exit(0);
+            
+        } 
+    }
+    //suspendam activitatea pentru a astepta finalizarea proceselor copil
+    for(int i = 1; i < argc; ++i)
+    {
+        wait(NULL);
+    }
+    //afisare
+    for(int i = 1; i < argc; ++i)
+    {
+        char* shm_ptr = mmap(NULL, dim, PROT_READ, MAP_SHARED, shm_fd, (i-1) * dim);
+        if(shm_ptr == MAP_FAILED)
+            {
+                perror("Problem with memory map in parent process\n");
+                shm_unlink(shm_name);
+                return errno;
+            }
+
+        printf("%s", shm_ptr);
+        munmap(shm_ptr, dim);
+    }
+    printf("Done parent, id = %d\n", getppid());
+    shm_unlink(shm_name);
+    return 0;
+}

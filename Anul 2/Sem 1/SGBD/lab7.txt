@@ -1,0 +1,283 @@
+CREATE SEQUENCE sec_alb
+ START WITH   206
+ INCREMENT BY   1
+ NOCACHE
+ NOCYCLE;
+
+
+
+CREATE OR REPLACE PACKAGE pachet1_alb AS
+    --a)    
+     cursor ang (v_last_name  emp_alb.last_name%type) return emp_alb%rowtype;
+     cursor emp_job (v_job_id jobs.job_id%type) return emp_alb%rowtype;
+     cursor all_jobs  return jobs%rowtype;
+     
+PROCEDURE add_employee (
+                        v_first_name emp_alb.first_name%TYPE,
+                        v_last_name emp_alb.last_name%TYPE,
+                        v_email emp_alb.email%TYPE,
+                        v_phone_number emp_alb.phone_number%TYPE,
+                        v_job_title jobs.job_title%TYPE,
+                        v_manager_last_name emp_alb.last_name%TYPE,
+                        v_manager_first_name emp_alb.first_name%TYPE,
+                        v_department_name departments.department_name%TYPE
+                        );
+                                                        
+FUNCTION  which_salary (v_dep departments.department_id%TYPE,  v_job  jobs.job_id%TYPE)
+RETURN employees.salary%type ;
+                                                        
+FUNCTION  which_dep (nume_dep  departments.department_name%TYPE)
+RETURN  departments.department_id%TYPE;
+
+FUNCTION  which_job(nume_job  jobs.job_title%TYPE)
+RETURN jobs.job_id%TYPE;
+
+FUNCTION  which_manager (v_last_name employees.last_name%type, v_first_name  employees.first_name%type)
+RETURN  employees.employee_id%TYPE;
+
+--b)
+PROCEDURE move_employee (
+                            v_first_name emp_alb.first_name%TYPE,
+                            v_last_name emp_alb.last_name%TYPE,
+                            v_department_name departments.department_name%TYPE,
+                            v_job_title jobs.job_title%TYPE,
+                            v_manager_first_name emp_alb.first_name%TYPE,
+                            V_manager_last_name emp_alb.last_name%type
+                        );
+
+
+--e)
+PROCEDURE change_salary ( new_salary emp_alb.salary%type, v_last_name emp_alb.last_name%TYPE);
+
+--f)
+PROCEDURE job_employees;
+END pachet1_alb;
+/
+
+CREATE OR REPLACE PACKAGE BODY pachet1_alb AS
+--a)
+   cursor ang (v_last_name  emp_alb.last_name%type) return emp_alb%rowtype is select * from emp_alb where last_name= v_last_name;
+--f)
+cursor emp_job (v_job_id jobs.job_id%type) return emp_alb%rowtype is select * from emp_alb where job_id=v_job_id;
+--g)
+    cursor all_jobs  return jobs%rowtype is select * from jobs;
+FUNCTION which_dep(nume_dep  departments.department_name%TYPE)
+RETURN departments.department_id%TYPE IS rezultat  departments.department_id%TYPE;
+                BEGIN
+                select department_id into rezultat
+                from departments
+                where department_name=nume_dep;
+                
+                RETURN rezultat;
+                
+                EXCEPTION
+                WHEN NO_DATA_FOUND THEN
+                  RAISE_APPLICATION_ERROR(-20001, 'No dep found');
+                WHEN TOO_MANY_ROWS THEN
+                  RAISE_APPLICATION_ERROR(-20002, 'More dep with this name');
+                WHEN OTHERS THEN
+                  RAISE_APPLICATION_ERROR(-20003, 'Other error in which_dep');
+END;
+
+  
+FUNCTION which_job(nume_job  jobs.job_title%TYPE)
+RETURN jobs.job_id%TYPE IS rezultat  jobs.job_id%TYPE;
+BEGIN
+                select job_id into rezultat
+                from jobs
+                where job_title=nume_job;
+                RETURN rezultat;
+                
+                EXCEPTION
+                WHEN NO_DATA_FOUND THEN
+                  RAISE_APPLICATION_ERROR(-20001, 'No job found');
+                WHEN TOO_MANY_ROWS THEN
+                  RAISE_APPLICATION_ERROR(-20002, 'More jobs with the same name');
+                WHEN OTHERS THEN
+                  RAISE_APPLICATION_ERROR(-20003, 'Other error in which_job');
+                
+END;  
+
+FUNCTION which_manager(v_last_name employees.last_name%type, v_first_name  employees.first_name%type)
+RETURN employees.employee_id%type is rezultat employees.employee_id%type;
+
+BEGIN
+                select employee_id into rezultat
+                from employees
+                where last_name=v_last_name and first_name=v_first_name;
+                RETURN rezultat;
+                
+                EXCEPTION
+                WHEN NO_DATA_FOUND THEN
+                  RAISE_APPLICATION_ERROR(-20001, 'No manager found');
+                WHEN TOO_MANY_ROWS THEN
+                  RAISE_APPLICATION_ERROR(-20002, 'More employees with the same names');
+                WHEN OTHERS THEN
+                  RAISE_APPLICATION_ERROR(-20003, 'Other error in which_manager');      
+END;  
+
+FUNCTION which_salary(v_dep departments.department_id%TYPE, v_job  jobs.job_id%TYPE)
+RETURN employees.salary%type IS rezultat employees.salary%type;
+
+BEGIN
+            select min(salary)
+            into rezultat
+            from employees
+            where department_id=v_dep and job_id= v_job
+            group by department_id, job_id;
+            
+            RETURN rezultat;
+            EXCEPTION
+            WHEN NO_DATA_FOUND THEN
+              RAISE_APPLICATION_ERROR(-20001, 'No salary found');
+            WHEN OTHERS THEN
+              RAISE_APPLICATION_ERROR(-20003, 'Other error in which_salary');      
+END;
+        
+        PROCEDURE add_employee(
+                                v_first_name emp_alb.first_name%TYPE,
+                                v_last_name emp_alb.last_name%TYPE,
+                                v_email emp_alb.email%TYPE,
+                                v_phone_number emp_alb.phone_number%TYPE,
+                                v_job_title jobs.job_title%TYPE,
+                                v_manager_last_name emp_alb.last_name%TYPE,
+                                v_manager_first_name emp_alb.first_name%TYPE,
+                                v_department_name departments.department_name%TYPE
+                                )
+        AS  
+        BEGIN
+                INSERT INTO emp_alb
+                VALUES (
+                sec_alb.NEXTVAL, 
+                v_first_name, 
+                v_last_name, 
+                v_email,
+                v_phone_number,
+                sysdate,
+                which_job( v_job_title), 
+                which_salary(which_dep(v_department_name),
+                which_job(v_job_title)),
+               null, 
+               which_manager(v_manager_last_name,v_manager_first_name),
+               which_dep(v_department_name)
+               );
+        END add_employee;
+        
+        
+        
+        
+--b)
+
+   PROCEDURE move_employee(
+                            v_first_name emp_alb.first_name%TYPE,
+                            v_last_name emp_alb.last_name%TYPE,
+                            v_department_name departments.department_name%TYPE,
+                            v_job_title jobs.job_title%TYPE,
+                            v_manager_first_name emp_alb.first_name%TYPE,
+                            V_manager_last_name emp_alb.last_name%type
+                            )
+     
+        IS
+        v_sal employees.salary%type;
+        v_commission employees.commission_pct%type;
+        v_sal_curent  employees.salary%type;
+        BEGIN
+                select max(salary) into v_sal
+                from emp_alb
+                where department_id=which_dep(v_department_name);
+                
+                select salary into v_sal_curent                                            
+                from emp_alb
+                where  last_name=v_last_name and first_name=v_first_name; 
+                
+                if v_sal<v_sal_curent then v_sal:=v_sal_curent;
+                end if;
+                
+                select min(commission_pct) into v_commission
+                from emp_alb
+                where department_id=which_dep(v_department_name) and job_id= which_job(v_job_title);
+                
+                UPDATE emp_alb
+                SET 
+                department_id= which_dep(v_department_name),
+                job_id=which_job(v_job_title),
+                manager_id=which_manager(v_last_name, v_first_name),
+                salary=v_sal,
+                commission_pct=v_commission,
+                hire_date=sysdate
+                WHERE last_name=v_last_name and first_name=v_first_name;
+        END move_employee;
+
+ --e)
+    
+      PROCEDURE change_salary(new_salary emp_alb.salary%type, v_last_name emp_alb.last_name%TYPE)
+        IS
+        v_min_sal   jobs.min_salary%type;
+        v_max_sal   jobs.max_salary%type; 
+        v_nr_ang number;
+    
+        BEGIN
+          
+                select count(*) into v_nr_ang
+                from emp_alb where last_name=v_last_name;
+                
+                 if v_nr_ang=0 then   DBMS_OUTPUT.PUT_LINE('Niciun angajat nu are numele asta.');
+                 end if;
+                 
+                 if v_nr_ang=1 then
+                    select min_salary into v_min_sal
+                    from jobs j,emp_alb e
+                    where e.last_name=v_last_name  and j.job_id=e.job_id;
+                    
+                     select max_salary into v_max_sal
+                    from jobs j,emp_alb e
+                    where e.last_name=v_last_name and j.job_id=e.job_id;
+                  
+                    if new_salary<= v_max_sal and new_salary>=v_min_sal then DBMS_OUTPUT.PUT_LINE('Se incadreaza in limite');     
+                        UPDATE emp_alb
+                        SET salary=new_salary
+                        WHERE last_name=v_last_name;
+                   end if;
+                   if new_salary>v_max_sal or new_salary<v_min_sal then  DBMS_OUTPUT.PUT_LINE('Nu se incadreaza in limite');
+                         UPDATE emp_alb
+                        SET salary=new_salary
+                        WHERE last_name=v_last_name;
+                   end if;
+                end if;
+                if v_nr_ang>1 then 
+            
+                    DBMS_OUTPUT.PUT_LINE('Mai multi angatati au acest nume! :');   
+                    for i in ang (v_last_name) loop
+                        UPDATE emp_alb
+                        SET salary=new_salary
+                        WHERE employee_id=i.employee_id;
+                        
+                        DBMS_OUTPUT.PUT_LINE(i.employee_id ||'  ' ||i.first_name||'  ' ||i.last_name);
+                    end loop;
+                end if;
+           
+                END change_salary;
+
+PROCEDURE job_employees is
+        nr NUMBER:=0;
+        BEGIN
+                   for i in all_jobs loop
+                            DBMS_OUTPUT.PUT_LINE(i.job_title||' : ');
+                            for j in emp_job(i.job_id) loop
+                                     DBMS_OUTPUT.PUT('       ' || j.first_name || ', ' || j.last_name|| ' : '); 
+                                     select count(employee_id) into nr
+                                     from job_history
+                                     where employee_id = j.employee_id and  job_id = j.job_id and  department_id = j.department_id; 
+
+                                    if nr =0 then DBMS_OUTPUT.PUT('Nu a mai avut jobul acesta in trecut.');
+                                    else DBMS_OUTPUT.PUT('A mai avut jobul acesta in trecut');
+                                    end if;
+                                    DBMS_OUTPUT.NEW_LINE;
+                            end loop;
+                              DBMS_OUTPUT.PUT_LINE('##############################################');  
+                   end loop;
+            
+        END job_employees;
+        
+END pachet1_alb;
+/

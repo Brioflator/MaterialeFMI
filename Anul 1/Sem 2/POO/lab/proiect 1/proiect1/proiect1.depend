@@ -1,0 +1,17 @@
+# depslib dependency file v1.0
+1649012196 source:c:\users\bales\onedrive\facultate\anul 1\sem 2\poo\lab\proiect 1\proiect1\main.cpp
+	<bits/stdc++.h>
+	<conio.h>
+
+1649010112 c:\users\bales\onedrive\facultate\anul 1\sem 2\poo\lab\proiect 1\proiect1\carte.h
+	<bits/stdc++.h>
+
+1649013051 c:\users\bales\onedrive\facultate\anul 1\sem 2\poo\lab\proiect 1\proiect1\client.h
+	<bits/stdc++.h>
+
+1649011461 c:\users\bales\onedrive\facultate\anul 1\sem 2\poo\lab\proiect 1\proiect1\angajat.h
+	<bits/stdc++.h>
+
+1649011488 c:\users\bales\onedrive\facultate\anul 1\sem 2\poo\lab\proiect 1\proiect1\furnizor.h
+	<bits/stdc++.h>
+

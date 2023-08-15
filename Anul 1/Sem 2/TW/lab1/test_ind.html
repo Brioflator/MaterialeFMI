@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <!-- <div class="container">
+      <div>1</div>
+      <div>2</div>
+      <div>3</div>
+      <div>4</div>
+      <div>5</div>
+    </div>
+
+    <style>
+      .container {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-rows: 1fr 1fr 1fr;
+        grid-template-areas:
+          ". m2 m5"
+          "m1 m3 m5"
+          ". m4 m5";
+        height: 50vh;
+        width: 250px;
+        border: 2px dotted blue;
+      }
+      .container > * {
+        border: 8px double black;
+        font-size: 15px;
+      }
+
+      .container :nth-child(1) {
+        grid-area: m1;
+      }
+      .container :nth-child(2) {
+        grid-area: m2;
+      }
+      .container :nth-child(3) {
+        grid-area: m3;
+      }
+      .container :nth-child(4) {
+        grid-area: m4;
+      }
+      .container :nth-child(5) {
+        grid-area: m5;
+      }
+
+      @media screen and (max-height: 500px) and (max-width: 600px) {
+        .container {
+          display: block;
+        }
+
+        .container > * {
+          transition: font-size 3s;
+          font-size: 15px;
+        }
+        .container > *:hover {
+          font-size: 30px;
+        }
+      }
+    </style> -->
+
+    <script>
+      const bodyNode = document.getElementsByTagName("body")[0];
+      for (let i = 0; i < 10; i++) {
+        const newDiv = document.createElement("div");
+        newDiv.innerHTML = "div" + i;
+        newDiv.className = "dreptunghi";
+        bodyNode.appendChild(newDiv);
+      }
+
+      const divs = document.getElementsByClassName("dreptunghi");
+
+      for (let div of divs) {
+        div.style.height = "50px";
+        div.style.position = "relative";
+
+        div.addEventListener("click", (e) => {
+          div.style.height = parseInt(div.style.height) + 10 + "px";
+          e.stopPropagation();
+        });
+        // div.onclick = function(event){
+
+        // }
+      }
+
+      window.onclick = function (event) {
+        for (let div of divs) {
+          div.style.height = "50px";
+        }
+      };
+    </script>
+
+    <style>
+      .dreptunghi {
+        display: inline-block;
+        position: relative;
+        margin: 10px;
+        border: 2px solid black;
+        height: 50px;
+        width: 50px;
+        background-color: aqua;
+      }
+    </style>
+  </body>
+</html>

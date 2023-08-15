@@ -1,0 +1,151 @@
+# Membrii Echipa: Paun Andrei, Balescu Alexandru, Narcis Fanica-Alexandru
+
+# Se va realiza un program care sa valideze o Masina Turing cu un cap si doua benzi, 
+# conform descrierii formale si a regulilor de computare din exercitiul 1 al lui Paun Andrei.
+
+#Pentru stringuri de forma L = {w#w| w = {a,b}*}
+
+Maintape:
+a
+b
+b
+a
+b
+#
+a
+b
+b
+a
+b
+End
+
+
+#
+# comment lines (skip them)
+#
+
+Secondtape:
+a
+b
+b
+a
+b
+#
+a
+b
+b
+a
+b
+End
+
+#
+# comment lines (skip them)
+#
+
+
+
+#
+# comment lines(skip them)
+#
+
+States1:
+q0, S
+q1
+q2
+q3
+q4
+q5
+q6
+q7
+qA, A
+End
+
+
+States2:
+q0prim, S
+q1prim
+q2prim
+q3prim
+q4prim
+q5prim
+q6prim
+q7prim
+qAprim, A
+End
+
+
+#
+# comment l i n e s ( skip them)
+#
+
+
+Sigma:
+a
+b
+End
+
+TapeAl:
+a
+b
+#
+_
+x
+*
+End
+
+#
+# comment l i n e s ( skip them)
+#
+
+
+
+Transitions1:
+q0, a, q1, x, R
+q1, a, q1, *, R
+q1, b, q1, *, R
+q1, #, q2, *, R
+q2, x, q2, *, R
+q2, a, q5, x, L
+q0, b, q3, x, R
+q3, a, q3, *, R
+q3, b, q3, *, R
+q3, #, q4, *, R
+q4, x, q4, *, R
+q4, b, q5, x, L
+q5, a, q5, *, L
+q5, b, q5, *, L
+q5, x, q5, *, L
+q5, #, q6, *, L
+q6, a, q6, *, L
+q6, b, q6, *, L
+q6, x, q0, *, R
+q0, #, q7, *, R
+q7, x, q7, *, R
+q7, _, qA, *, R
+End
+
+
+Transitions2:
+q0prim, a, q1prim, x, L
+q1prim, a, q1prim, *, L
+q1prim, b, q1prim, *, L
+q1prim, #, q2prim, *, L
+q2prim, x, q2prim, *, L
+q2prim, a, q5prim, x, R
+q0prim, b, q3prim, x, L
+q3prim, a, q3prim, *, L
+q3prim, b, q3prim, *, L
+q3prim, #, q4prim, *, L
+q4prim, x, q4prim, *, L
+q4prim, b, q5prim, x, R
+q5prim, a, q5prim, *, R
+q5prim, b, q5prim, *, R
+q5prim, x, q5prim, *, R
+q5prim, #, q6prim, *, R
+q6prim, a, q6prim, *, R
+q6prim, b, q6prim, *, R
+q6prim, x, q0prim, *, L
+q0prim, #, q7prim, *, L
+q7prim, x, q7prim, *, L
+q7prim, _, qAprim, *, L
+End

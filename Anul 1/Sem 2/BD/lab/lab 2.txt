@@ -1,0 +1,39 @@
+--3.Săse afişeze,pentru  angajaţii  cu  prenumele  „Steven”,  codulşinumele acestora, precum şi codul departamentului în care lucrează.
+--Căutarea trebuie să nu fie case-sensitive, iar eventualele blank-uri care preced sau urmează numelui trebuie ignorate.
+select TRIM(BOTH ' ' from first_name||' '||last_name) as "Nume", employee_id as "COD", department_id as "COD departament"
+from employees
+where LTRIM(UPPER(first_name)) like 'STEVEN';
+
+
+--7.Să  se  listeze  numele  şi  data  angajării  salariaţilor  care  câştigă  comision.
+--Să  se eticheteze coloanele „Nume angajat”, „Data angajarii”.
+--Utilizaţi funcţia RPADpentru  a determina ca data angajării să aibă lungimea de 20 de caractere.
+SELECT E.first_name||' '||E.last_name as "Nume angajat", RPAD(J.start_date,20) as "Data angajarii"
+from employees E
+JOIN job_history J
+on (E.employee_id=J.employee_id)
+where e.commission_pct > 0;
+
+--8.Să se afişeze data (numele lunii, ziua, anul, ora, minutul si secunda) de peste 30 zile.
+select to_char(sysdate+30, 'DD/MM/YYYY HH24/Mi/SS') as "DATE" from dual;
+
+--10.a) Să se afişeze data de peste 12 ore.
+select to_char(sysdate+1/2, 'DD/MM/YYYY HH24/Mi/SS')  as "DATE" from dual;
+--b) Să se afişeze data de peste 5 minute
+select to_char(sysdate+(1/1440*5), 'DD/MM/YYYY HH24/Mi/SS') as "DATE"  from dual;
+
+--11.Să se afişeze numele şi prenumele angajatului (într-o singură coloană), data angajării şi  data  negocierii  salariului,  care  este  prima  zi  de  Luni  după  6  luni  de  serviciu.
+--Etichetaţi această coloană “Negociere”.
+SELECT E.first_name||' '||E.last_name as "Nume angajat", J.start_date as "Data angajarii", NEXT_DAY( add_months(j.start_date,6), 'MONDAY') as "Negociere"
+from employees E
+JOIN job_history J
+on (E.employee_id=J.employee_id);
+
+--12.Pentru fiecare angajat să se afişeze numele şi numărul de luni de la data angajării.
+--Etichetaţi  coloana  “Luni  lucrate”.  Să  se  ordoneze  rezultatul  după  numărul  de  luni lucrate.
+--Se va rotunji numărul de luni la celmai apropiat număr întreg.
+SELECT E.first_name||' '||E.last_name as "Nume angajat", ROUND(MONTHS_BETWEEN(SYSDATE,J.start_date)) as "Luni lucrate"
+from employees E
+JOIN job_history J
+on (E.employee_id=J.employee_id)
+order by "Luni lucrate";

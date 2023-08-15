@@ -1,0 +1,10 @@
+# ninja log v5
+3	378	7017656971890234	CMakeFiles/AA.dir/Lab_2/pct_in_poligon_convex.cpp.obj	3a7fbadeb239985a
+521	638	7058141405520325	AA.exe	e5be5564a41f2fde
+3	521	7029679064385928	CMakeFiles/AA.dir/Lab_2/pct_in_poligon_convex_nm.cpp.obj	c80446f804109c12
+3	348	7029703207181365	CMakeFiles/AA.dir/Lab_3/Muchii_ilegale.cpp.obj	a4d9ebd01eee0ced
+11	451	7029702539462971	CMakeFiles/AA.dir/Lab_3/Pct_in_Cerc.cpp.obj	8d04299151de16a9
+3	520	7058141404399131	CMakeFiles/AA.dir/Aproximativi/Knapsack.cpp.obj	171fe2a74659e7fe
+1	377	7057994495023320	CMakeFiles/AA.dir/Lab_3/semiplane.cpp.obj	cd9625cac8750a62
+1	456	7059741348131606	CMakeFiles/AA.dir/Genetici/genetic.cpp.obj	7867ea5ca4c6f0cb
+458	655	7059741350081129	AA.exe	ee043980238d76d9

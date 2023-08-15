@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="container">
+        <div>1</div>
+        <div>2</div>
+        <div>3</div>
+        <div>4</div>
+        <div>5</div>
+    </div>
+    <style>
+        #container
+        {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-rows: 1fr 1fr 1fr;
+        grid-template-areas:
+          "m3 . m2"
+          ". m4 ."
+          "m5 . m1";
+        height: 25vh;
+        width: 250px;
+        border: 2px dotted blue;
+      }
+      #container > * {
+        border: 6px double black;
+        font-size: 10px;
+      }
+
+      #container :nth-child(1) {
+        grid-area: m1;
+      }
+      #container :nth-child(2) {
+        grid-area: m2;
+      }
+      #container :nth-child(3) {
+        grid-area: m3;
+      }
+      #container :nth-child(4) {
+        grid-area: m4;
+      }
+      #container :nth-child(5) {
+        grid-area: m5;
+      }
+
+      @media screen and (max-height: 500px) and (max-width: 600px) {
+        #container {
+          display: flex;
+          flex-direction: column-reverse;
+        }
+
+        #container > * {
+          transition: font-size 3s, border-color 3s;
+          font-size: 10px;
+        }
+        #container > *:hover {
+          font-size: 20px;
+          border-color: red;
+        }
+      }
+
+
+    </style>
+</body>
+</html>

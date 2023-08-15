@@ -1,0 +1,258 @@
+-- 1
+DECLARE
+    TYPE t_codes IS TABLE OF emp_alb.employee_id%TYPE  
+    INDEX BY PLS_INTEGER;
+    TYPE t_salaries IS TABLE OF emp_alb.salary%TYPE;
+    v_codes t_codes;
+    v_salaries t_salaries;
+BEGIN
+    SELECT employee_id, salary BULK COLLECT INTO v_codes, v_salaries
+    FROM (SELECT * FROM emp_alb ORDER BY SALARY)
+    WHERE ROWNUM <= 5;
+
+    FOR i IN 1..5 LOOP
+        UPDATE emp_alb
+        SET salary = salary * 1.05
+        WHERE employee_id = v_codes(i);
+        DBMS_OUTPUT.PUT(v_codes(i) || ' ' || v_salaries(i) || ' ' || v_salaries(i)*1.05);
+        DBMS_OUTPUT.NEW_LINE;
+    END LOOP;
+END;
+/
+ROLLBACK;
+
+
+--2
+CREATE OR REPLACE TYPE tip_orase_alb IS TABLE OF VARCHAR2(200);
+/
+CREATE TABLE excursie_alb (cod_excursie NUMBER(4), denumire VARCHAR2(20), status VARCHAR2(12));
+ALTER TABLE excursie_alb ADD (orase tip_orase_alb) NESTED TABLE orase STORE AS tabel_orase_alb;
+
+
+SELECT *
+FROM excursie_alb;
+
+-- a
+INSERT INTO excursie_alb
+VALUES (1, 'ROMANIA', 'AVAILABLE', tip_orase_alb('IASI', 'BUCURESTI', 'CLUJ', 'CONSTANTA', 'TIMISOARA'));
+
+INSERT INTO excursie_alb
+VALUES (2, 'FRANTA', 'UNAVAILABLE', tip_orase_alb('PARIS', 'NICE', 'MARSEILLE', 'BORDEAUX', 'LEON'));
+
+INSERT INTO excursie_alb
+VALUES (3, 'GREECE', 'AVAILABLE', tip_orase_alb('ATHENA', 'SALONIC', 'CHANIA', 'RODOS', 'PATRAS'));
+
+INSERT INTO excursie_alb
+VALUES (4, 'ITALIA', 'AVAILABLE', tip_orase_alb('ROMA', 'NAPOLI', 'PALERMO', 'TORINO', 'GENOVA'));
+
+INSERT INTO excursie_alb
+VALUES (5, 'SPAIN', 'AVAILABLE', tip_orase_alb('MADRID', 'BARCELONA', 'SEVILLA', 'RONDA', 'BILBAO'));
+
+COMMIT;
+
+--b
+--b1(add coada)
+DECLARE
+    id NUMBER(4) := &id;
+    oras VARCHAR(200) :='&oras';
+BEGIN
+    INSERT INTO TABLE( SELECT orase FROM excursie_alb WHERE cod_excursie = id) VALUES (UPPER(oras));
+    DBMS_OUTPUT.PUT_LINE ('Insert succeeded');
+END;
+/
+ROLLBACK;
+
+--b2(add second)
+DECLARE 
+    tabel tip_orase_alb := tip_orase_alb();
+    aux   tip_orase_alb := tip_orase_alb();
+    id        NUMBER(4) := &id;
+    oras   VARCHAR(200) :='&oras';
+BEGIN
+    SELECT orase
+    INTO tabel
+    FROM excursie_alb
+    WHERE cod_excursie = id;
+    
+    FOR i in 1..tabel.count LOOP
+        aux.extend;
+        IF i = 1 
+            THEN aux(i) := tabel(i);
+        END IF;
+        IF i = 2
+            THEN aux(i) := UPPER(oras);
+            aux.extend;
+            aux(i+1) := tabel(i);
+        END IF;
+        IF i > 2
+            THEN aux(i+1) := tabel(i);
+        END IF;
+    END LOOP;
+    
+    UPDATE excursie_alb 
+    SET orase = aux
+    WHERE cod_excursie = id;
+END;
+/
+ROLLBACK;
+--b3(swap orase)
+--orasele trebuie introduse cu litere mari
+DECLARE 
+    tabel tip_orase_alb := tip_orase_alb();
+    id        NUMBER(4) := &id;
+    oras1   VARCHAR(200) :='&oras1';
+    oras2   VARCHAR(200) :='&oras2';
+BEGIN
+    SELECT orase
+    INTO tabel
+    FROM excursie_alb
+    WHERE cod_excursie = id;
+    
+    FOR i in 1..tabel.count LOOP
+        IF tabel(i) = oras1 
+            THEN tabel(i) := UPPER(oras2);
+        ELSE
+            IF tabel(i) = oras2 
+                THEN tabel(i) := UPPER(oras1);
+            END IF;
+        END IF;
+    END LOOP;
+    
+    UPDATE excursie_alb 
+    SET orase = tabel
+    WHERE cod_excursie = id;
+END;
+/
+ROLLBACK;
+
+--b4
+DECLARE 
+    tabel tip_orase_alb := tip_orase_alb();
+    aux tip_orase_alb := tip_orase_alb();
+    id        NUMBER(4) := &id;
+    oras   VARCHAR(200) :='&oras';
+    ind NUMBER(6) := 1;
+BEGIN
+    SELECT orase
+    INTO tabel
+    FROM excursie_alb
+    WHERE cod_excursie = id;
+    
+    FOR i in 1..tabel.count LOOP
+        IF tabel(i) != oras
+            THEN aux.extend;
+                 aux(ind) := tabel(i);
+                 ind := ind + 1;  
+        END IF;
+    END LOOP;
+    
+    UPDATE excursie_alb 
+    SET orase = aux
+    WHERE cod_excursie = id;
+END;
+/
+ROLLBACK;
+
+--c(eliminare orase)
+DECLARE 
+    tabel tip_orase_alb := tip_orase_alb();
+    id        NUMBER(4) := &id;
+    
+BEGIN
+    SELECT orase
+    INTO tabel
+    FROM excursie_alb
+    WHERE cod_excursie = id;
+    
+    DBMS_OUTPUT.PUT_LINE('Nr orase: ' || tabel.count);
+    
+    FOR i in 1..tabel.count LOOP
+         DBMS_OUTPUT.PUT_LINE(tabel(i));
+    END LOOP;
+   
+END;
+/
+--d
+SET SERVEROUTPUT ON;
+
+DECLARE 
+    tabel tip_orase_alb := tip_orase_alb();
+    TYPE tip_coduri IS VARRAY(5) OF NUMBER(6);
+    coduri tip_coduri;
+    id NUMBER(6) ;
+BEGIN
+    SELECT cod_excursie BULK COLLECT
+    INTO coduri
+    FROM excursie_alb;
+
+
+    for i in coduri.FIRST..coduri.LAST LOOP
+        id := coduri(i);
+        SELECT orase
+        INTO tabel
+        FROM excursie_alb
+        WHERE cod_excursie = id;
+        DBMS_OUTPUT.PUT_LINE('Pentru excursia cu codul ' || id || ':');
+         FOR i in 1..tabel.count LOOP
+         DBMS_OUTPUT.PUT_LINE(tabel(i));
+        END LOOP;
+        DBMS_OUTPUT.PUT_LINE('');
+    END LOOP;
+        
+   
+END;
+/
+
+--e
+DECLARE 
+    tabel tip_orase_alb := tip_orase_alb();
+    TYPE tip_coduri IS VARRAY(5) OF NUMBER(6);
+    coduri tip_coduri;
+    id NUMBER(6) ;
+    minim NUMBER(6);
+    numar NUMBER(6);
+BEGIN
+    SELECT cod_excursie BULK COLLECT
+    INTO coduri
+    FROM excursie_alb;
+
+    id := coduri(1);
+    SELECT orase
+    INTO tabel
+    FROM excursie_alb
+    WHERE cod_excursie = id;
+    
+    minim := tabel.count;
+    
+    FOR i IN 2..coduri.LAST LOOP
+        id := coduri(i);
+        SELECT orase
+        INTO tabel
+        FROM excursie_alb
+        WHERE cod_excursie = id;
+        IF tabel.count < minim
+            THEN minim := tabel.count;
+        END IF;
+    END LOOP;
+    
+    DBMS_OUTPUT.PUT_LINE('Minimul este: ' || minim);
+        
+    FOR i IN coduri.FIRST..coduri.LAST LOOP
+        id := coduri(i);
+        SELECT orase
+        INTO tabel
+        FROM excursie_alb
+        WHERE cod_excursie = id;
+        IF tabel.count = minim THEN
+            UPDATE excursie_alb 
+            SET status = 'UNAVAILABLE'
+            WHERE cod_excursie = id;
+        END IF;
+    END LOOP;
+   
+END;
+/
+ROLLBACK;
+
+SELECT *
+FROM excursie_alb;

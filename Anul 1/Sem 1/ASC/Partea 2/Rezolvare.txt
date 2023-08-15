@@ -1,0 +1,331 @@
+.data
+	n: .space 10
+	ni: .space 10
+	nt: .space 10
+	nts: .space 10
+	m: .space 10
+	v: .space 501
+	f: .space 501
+	input: .space 501
+
+	aux: .space 10
+	f_i: .space 4
+	f_k: .space 4
+	v_k: .space 4
+
+	delim: .asciz " "
+	finished: .long 0
+
+	minus_unu: .long -1
+	freq: .long 1
+
+	sf: .asciz "%s"
+	pfs: .asciz "%s "
+	pfd: .asciz "%d "
+	pfdn: .asciz "%d \n"
+
+	endl: .asciz "\n"
+
+.text
+
+.global main
+
+tipar:
+	pushl %ebp
+	movl %esp, %ebp
+
+	# parcurgere vector pt afisare
+	movl $f, %edi
+	xorl %ecx, %ecx
+	incl %ecx
+
+	loop_t:
+		cmp %ecx, nt
+		je exit_t
+
+		pushl %ecx
+
+		movl (%edi, %ecx, 4), %ebx
+		pushl %ebx
+		pushl $pfd
+		call printf
+		popl %ebx
+		popl %ebx
+
+		popl %ecx
+		incl %ecx
+		jmp loop_t
+
+	exit_t:
+		# final de linie
+
+		pushl $endl
+		call printf
+		popl %ebx
+
+		movl $1, finished
+
+		popl %ebp
+		ret
+
+valid:
+
+	pushl %ebp
+	movl %esp, %ebp
+
+	movl $1, freq
+	# primul for
+	movl 8(%ebp), %eax
+	movl %eax, %ecx
+	movl $f, %edi
+	subl m, %ecx
+
+	movl $v, %esi
+
+	movl (%edi, %eax, 4), %edx 
+	# movl %edx, f_k
+
+	loop_v:
+		cmp %ecx, %eax
+		je exit_v
+		movl (%edi, %ecx, 4), %ebx
+		# movl %ebx, f_i
+		
+		cmp %ebx, %edx
+		je exit_0
+
+		incl %ecx
+		jmp loop_v
+
+	exit_v:
+		movl (%esi, %eax, 4), %edx
+		cmp $0, %edx
+		je nu_conditie_2
+
+	conditie_2:
+	movl (%esi, %eax, 4), %edx 
+	movl (%edi, %eax, 4), %ebx
+	movl %ebx, f_k
+	cmp %edx, f_k
+	jne exit_0
+
+	nu_conditie_2:
+
+	xorl %ecx, %ecx
+	incl %ecx
+
+	loop_v2:
+		cmp %ecx, %eax
+		je exit_v2
+		movl (%edi, %eax, 4), %edx
+		movl (%edi, %ecx, 4), %ebx
+		movl %ebx, f_i
+		
+		cmp f_i, %edx
+		je increm
+
+		incl %ecx
+		jmp loop_v2
+
+	cont_v2:
+		incl %ecx
+		jmp loop_v2
+
+	exit_v2:
+		movl freq, %ebx
+		cmp $3, %ebx
+		jg exit_0
+
+	exit_1:
+	popl %ebp
+	xorl %eax, %eax
+	incl %eax
+	ret
+
+	exit_0:
+	popl %ebp
+	xorl %eax, %eax
+	ret
+
+	increm:
+	incl freq
+	jmp cont_v2
+
+
+
+bckt:
+	pushl %ebp
+	movl %esp, %ebp
+
+	movl 8(%ebp), %eax # eax e k
+	movl %eax, aux
+	
+	movl $f, %edi
+	xorl %ecx, %ecx
+	incl %ecx 			# ecx e i
+
+	loop_b:
+		movl 8(%ebp), %eax
+		cmp %ecx, ni
+		je return_0
+
+		movl %ecx, (%edi, %eax, 4)
+
+		pushl %ecx
+
+		movl finished, %ebx
+		cmp $0, %ebx
+		je valid_1
+
+		enter_valid_2:
+		popl %ecx
+		incl %ecx
+		movl 8(%ebp), %eax
+		jmp loop_b
+
+	
+	return_0:
+		popl %ebp
+		ret
+
+	valid_1:
+	pushl %eax
+	call valid
+	popl %ebx
+
+	cmp $0, %eax
+	je enter_valid_2
+
+	valid_2:
+	movl 8(%ebp), %eax
+	cmp %eax , nts
+	jle afisare
+
+	movl 8(%ebp), %eax
+	cmp %eax, nts
+	jne repetare
+
+
+	repetare:
+	movl 8(%ebp), %eax
+	incl %eax
+	pushl %eax
+	call bckt
+	popl %eax
+	jmp enter_valid_2
+	
+	afisare:
+	call tipar
+
+	finisation:
+	jmp exit
+
+	
+
+main:
+
+# citire input
+	pushl $input
+	call gets
+	popl %ebx
+
+# prelucrare strtok
+	# extrag n
+	pushl $delim
+	pushl $input
+	call strtok
+	popl %ebx
+	popl %ebx
+
+	movl %eax, aux
+
+	pushl aux
+	call atoi
+	popl %ebx
+
+	movl %eax, n
+
+	# extrag 3*n
+	movl $3, %eax
+	movl n, %ebx
+	imul %ebx
+	mov %eax, nt
+	mov %eax, nts
+	incl nt			# lucrez cu vectori de la 1
+
+	# fac n+1 ca sa nu ma complic cu stiva
+	movl n, %ebx
+	movl %ebx, ni
+	incl ni
+
+	# extrag m
+	pushl $delim
+	pushl $0
+	call strtok
+	popl %ebx
+	popl %ebx
+
+	movl %eax, aux
+
+	pushl aux
+	call atoi
+	popl %ebx
+
+	movl %eax, m
+
+	# stocare in vector
+	
+	xorl %ecx, %ecx
+	incl %ecx
+
+loop_tok:
+
+	cmp %ecx, nt
+	je exit_tok
+
+	pushl %ecx
+
+	pushl $delim
+	pushl $0
+	call strtok
+	popl %ebx
+	popl %ebx
+
+	movl %eax, aux
+
+	pushl aux
+	call atoi
+	popl %ebx
+
+	movl $v, %edi
+	popl %ecx
+	movl %eax, (%edi, %ecx, 4)
+
+	incl %ecx
+	jmp loop_tok
+
+exit_tok:
+
+# apelare bckt
+	pushl $1 
+	call bckt
+	popl %ebx
+
+# verificare de "nu exista"
+	movl finished, %ebx
+	cmp $0, %ebx
+	je negativ
+
+
+negativ:
+	pushl minus_unu
+	pushl $pfdn
+	call printf
+	popl %ebx
+	popl %eax
+	jmp exit
+
+exit:
+	movl $1, %eax
+	xorl %ebx, %ebx
+	int $0x80

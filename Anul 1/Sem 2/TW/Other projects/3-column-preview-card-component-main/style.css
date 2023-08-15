@@ -1,0 +1,122 @@
+@import url(https://fonts.googleapis.com/css?family=Lexend+Deca&display=swap);
+@import url(https://fonts.googleapis.com/css?family=Big+Shoulders+Display&display=swap);
+
+html {
+  height: 100%;
+}
+
+body {
+  height: 100%;
+  background-color: hsl(0, 0%, 95%);
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  font-size: 15px;
+}
+
+.options {
+  height: 600px;
+  display: flex;
+  justify-content: center;
+  flex-flow: row wrap;
+}
+
+.SUV,
+.sedan,
+.luxury {
+  width: 250px;
+  padding: 50px;
+}
+
+.sedan {
+  background-color: hsl(31, 77%, 52%);
+  border-bottom-left-radius: 10px;
+  border-top-left-radius: 10px;
+}
+
+.SUV {
+  background-color: hsl(184, 100%, 22%);
+}
+
+.luxury {
+  background-color: hsl(179, 100%, 13%);
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+h1 {
+  font-family: Big Shoulders Display, monospace;
+  font-size: 40px;
+  font-weight: 700;
+  color: hsl(0, 0%, 95%);
+  letter-spacing: 2px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+p {
+  font-family: Lexend Deca, monospace;
+  font-weight: 400;
+  line-height: 1.8;
+  padding-bottom: 100px;
+  font-size: 18px;
+  color: hsla(0, 0%, 100%, 0.75);
+}
+
+button {
+  height: 60px;
+  width: 180px;
+  font-size: 20px;
+  font-weight: 500;
+  font-family: Lexend Deca, monospace;
+  background-color: hsl(0, 0%, 95%);
+  border-color: hsl(0, 0%, 95%);
+  border: 2px solid hsl(0, 0%, 95%);
+  border-radius: 30px;
+  outline: none;
+}
+
+#S {
+  color: hsl(31, 77%, 52%);
+}
+
+#SUV {
+  color: hsl(184, 100%, 22%);
+}
+
+#L {
+  color: hsl(179, 100%, 13%);
+}
+
+#S:hover {
+  animation: activeS forwards;
+}
+
+@keyframes activeS {
+  100% {
+    background-color: hsl(31, 77%, 52%);
+    color: hsl(0, 0%, 95%);
+  }
+}
+
+#SUV:hover {
+  animation: activeSUV forwards;
+}
+
+@keyframes activeSUV {
+  100% {
+    background-color: hsl(184, 100%, 22%);
+    color: hsl(0, 0%, 95%);
+  }
+}
+
+#L:hover {
+  animation: activeL forwards;
+}
+
+@keyframes activeL {
+  100% {
+    background-color: hsl(179, 100%, 13%);
+    color: hsl(0, 0%, 95%);
+  }
+}

@@ -1,0 +1,28 @@
+N = 10000
+C_N = N
+Fali = 0
+n = 10
+k = 7
+while(N>0)
+{
+  monede_r = k
+  while(monede_r!=0 & monede_r!=n)
+  {
+    moneda = sample(c("H", "T"), 1, replace=TRUE)
+    
+    if(moneda=="H")
+      monede_r=monede_r+1
+    if(moneda=="T")
+      monede_r=monede_r-1
+  }
+  
+  if(monede_r==0){
+    Fali=Fali+1
+  }
+  
+  N=N-1;
+}
+
+probFali =1 - Fali / C_N
+print("Prob faliment: ")
+print(probFali)

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <!-- <script>
+        fetch("http://localhost:8080/")
+        .then(res=>res.json())
+        .then(resJson=>console.log(resJson));
+
+    </script> -->
+
+    <!-- <script>
+      window.onload = function () {
+        var k = new Date().getMinutes();
+        k = Math.max(k, 10);
+        cn = ["c1", "c2", "c3", "c4", "c5"];
+
+        for (let i = 0; i <= k; i++) {
+          let r = Math.floor(Math.random() * 5);
+          let p = document.createElement("p");
+          p.className = cn[r];
+          p.innerHTML = "Alexandru";
+
+          document.body.appendChild(p);
+        }
+        let cls;
+        let clk = 0;
+        let paragrafe = document.getElementsByTagName("p");
+        for (let i = 0; i < k; i++) {
+          paragrafe[i].addEventListener("click", (event) => {
+            cls = paragrafe[i].className;
+            clk = 1;
+            event.stopPropagation();
+            console.log(cls);
+            for (let i = 0; i <= paragrafe.length; i++) {
+              if (paragrafe[i].className == cls)
+                paragrafe[i].style.display = "none";
+            }
+          });
+        }
+        window.addEventListener("click", (event) => {
+          alert(event.clientY);
+        });
+      };
+    </script>
+
+    <style>
+      .c1 {
+        color: red;
+      }
+      .c2 {
+        color: green;
+      }
+      .c3 {
+        color: blue;
+      }
+      .c4 {
+        color: black;
+      }
+      .c5 {
+        color: pink;
+      }
+    </style> -->
+
+    <form method="post" action="http://localhost:5050/post">
+      <select name="marime" id="marime">
+        <option value="mic">mic</option>
+        <option value="mare">mare</option>
+      </select>
+
+      <input type="radio" name="cap" id="cap" value="true" />
+      <label for="cap">capitala</label>
+      <input type="radio" name="cap" id="nocap" value="false" />
+      <label for="cap"> nu e capitala</label>
+
+      <button type="submit">Submit</button>
+    </form>
+  </body>
+</html>

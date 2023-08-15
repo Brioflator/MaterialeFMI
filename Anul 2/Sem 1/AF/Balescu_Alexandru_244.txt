@@ -1,0 +1,83 @@
+1. =========================================================================================================================================================
+ 
+	maxflow 
+		Pentru punctul a) am aplicat Edmonds-Karp. 
+
+		Pentru punctul b) a fost nevoie sa calculam "taietura minima". Am calculat o dupa ce am executat Edmonds-Karp, anume cand flowul 
+		era maxim peste tot. Asta insemna faptul ca nu mai existau lanturi nesaturate. Am scris un dfs care vizita toate nodurile pana
+		cand ajungea la un o muchie saturata, iar muchia care facea parte din taietura minima era cea dintre ultimul nod vizitat de dfs
+		si primul nod inca nevizitat.
+	 
+	longest-common-subsequence 
+		Am folosit un program standard de programare dinamica, unde indicii coloanei erau literele unui cuvant, iar indicii liniei erau
+		literele celuilalt cuvant. Am pornit din coltul dreapta jos al matricii astfel incat rezultatul meu final sa fie in matrix[0][0]
+
+	shortest-common-supersequence 
+		Pentru a rezolva aceasta problema am recurs la programare dinamica, iar rezolvarea e similara cu problema anterioara pana intr-un 
+		punct.
+		Matricea creata e plina de caractere empty ca sa ne putem crea cuvantul.
+		Initial gasim cea mai lunga secventa comuna = lcs
+		Formula pentru a afla cea mai scurta secventa care are ca subsecvente cele doua cuvinte date este:
+		cuvant1 + cuvant2 - lcs
+
+2. =========================================================================================================================================================
+
+	In loc de Ford-Fulkerson am ales sa utilizez Edmonds-Karp. Acest algoritm este o variatie a lui Ford-Fulkerson, insa in loc de DFS foloseste BFS;
+	de asemenea, inca o diferenta esentiala este faptul ca Edmonds-Karp creeaza un graf rezidual. Acest graf tinea minte capacitatea
+	reziduala a fiecarui arc(capacitatea reziduala minima a unui lant e egala cu flowul maxim)
+
+3. =========================================================================================================================================================
+
+	Cuplaj 
+	Am adaugat doua noduri imaginare: o sursa si o destinatie. 
+	Conectam nodurile din prima multime de sursa prin muchii de capacitate 1
+	Conectam nodurile din a doua multime de destinatie prin muchii de capacitate 1
+	Muchiile citite devin muchii de capacitate 1
+	Facem Edmonds-Karp, iar muchiile saturate reprezinta conexiunile cerute de enunt
+	(sursa e nodul 0, destinatia e nodul n+m+1, nodurile din cele 2 multimi sunt de la 1->n si de la n+1->n+m)
+
+	Harta
+	Prelucram datele problemei astfel incat sa devina un algoritm de network flow:
+		Cream un graf complet de n noduri. 
+		In stanga avem nodurile propriu-zise
+		In dreapta avem nodurile copie
+		Capacitatea fiecarei muchii o sa fie 1
+		Ne creem noduri fictive de start(0) pentru gradul intern si destination(2*n+1)
+		Legam nodul de start de nodurile propriu-zise, iar capacitatea este gradul intern
+		Legam nodul de destinatie de nodurile copie, iar capacitatea este gradul extern
+		Facem Edmonds-Karp, afisam numarul de drumuri construite, adica fluxul maxim
+		Muchiile saturate reprezinta drumurile dintre orase, deci trebuie sa afisam perechiile de noduri care au muchii intre ele
+	
+
+4. =========================================================================================================================================================
+
+	Similaritatea dintre aceasta problema si problema domino este modul de creere al muchiilor si modul de retinere al datelor. Se creeaza
+	o muchie numai si numai daca exista doua perechi care sa aiba acelasi numar. Din moment ce problema specifica faptul ca mereu o sa 
+	avem o aranjare valida si problema nu face distinctie intre drum si ciclu eulerian, functia de aflare daca exista drum eulerian este
+	mai simpla. Daca un nod apare o singura data, atunci acela e nodul de start, daca nu folosesc primul nod din coada. Functia parcurge
+	lista de adiacenta a nodului curent si pe masura ce cauta nodul urmator, elibereaza lista de adiacenta a nodului curent. Daca se re
+	ajunge la un nod al carui lista de adiacenta e goala, atunci algoritmul se opreste si acel ultim nod e adaugat in lista "path". Aceasta
+	este inversata si lantul e construit luand elemente de acolo doua cate doua
+
+5. =========================================================================================================================================================
+
+	a) shortest-path-visiting-all-nodes
+		Avand in vedere ca stim numarul maxim de noduri(maxim 12) si ca memoria e limitata, putem sa ne folosim de un bitmask pe post de 
+		vector de frecventa. Ca ciclul sa fie hamiltonian, atunci toate nodurile trebuie sa fie vizitate, ceea ce inseamna ca bitmask ul 
+		trebuie sa fie de forma 111...11, semnificand ca toate nodurile au fost verificate.
+		Parcurgem fiecare fiecare nod din cele N noduri. In "state" construim masca de biti pas cu pas. Daca trecem printr un nod deja
+		vizitat, atunci il sarim, daca nu, modificam masca de biti pe pozitia corespunzatoare nodului. La fiecare incrementare crestem
+		counter ul.
+
+	b) "visited" e o lista de liste care ajuta la verificarea vizitarii nodurilor. Operatorii pe biti i-am utilizat la creerea mastilor 
+	    corespunzatoare fiecarui nod(1<<i) si la construirea mastii pentru "state" am folosit operatorul | ca sa updatatam nodurile noi gasite.
+
+	c) modificam if-ul care ne permite sa revizitam noduri.Initializam o varabila semafor, semf=1.
+	   Daca intram pe acel if, semf=0. Dam return in functie de rezultat.
+
+6. =========================================================================================================================================================
+
+	LCS: ce reprezinta matrix[i][j]
+
+	Matricea este utilizata pentru a stoca rezultatele subproblemelor anterioare, deci in matrixi[i][j] se stocheaza rezultatul generat de iterarea 	anterioara pentru a fi refolosit eficient in iterarea urmatoare
+		
