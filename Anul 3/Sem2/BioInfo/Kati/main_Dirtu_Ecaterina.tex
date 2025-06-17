@@ -1,0 +1,73 @@
+\documentclass{article}
+
+% Language setting
+% Replace `english' with e.g. `spanish' to change the document language
+\usepackage[english]{babel}
+
+% Set page size and margins
+% Replace `letterpaper' with `a4paper' for UK/EU standard size
+\usepackage[letterpaper,top=2cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+% Useful packages
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{subfig}
+
+\title{Ribosome}
+\author{Dirtu Ecaterina, 342}
+
+\begin{document}
+\maketitle
+
+\newpage
+
+\section{What are the ribosomes?}
+
+They are macromolecular machines that are found either floating within the cytoplasm or attached to the endoplasmic reticulum. They are an assembly of two molecular components that produce mechanical movements mimicking devices like switches or Turing Machines. Looking even closer, these components are made of several ribosomal RNA molecules and ribosomal proteins. 
+
+Depending on their “rate of sedimentation in centrifugation” which is measured in Svedberg units, rather than size, ribosomes are also classified in prokaryotes (with 70S, made out of a small subunit - 30S and a large one - 50S), eukaryotes (with 80S, made out of a small subunit - 40S and large one- 60S) and archaeal ribosomes (with similar general dimensions of prokaryotes, but on the sequence level, being closer to the eukaryotic ribosomes).
+
+\begin{figure} [h]
+\includegraphics[width=0.5\textwidth]{640px-Ribosome_shape.png}
+\caption{Large (red) and small (blue) subunit fit together \cite{Wikipedia}}
+\end{figure}
+
+\section{What is the purpose of ribosomes in a cell? }
+
+They perform the translation of messenger RNA, also known as biological protein synthesis. Their job is to link amino acids following the order specified by the 3-nucleotides codons of messenger RNA, thus forming chains of polypeptides. 
+
+More explicitly, using the messenger RNA as a mold, the ribosome traverses each codon, pairing it with its associated amino acid which is provided by an aminoacyl-tRNA (it contains its complement, an anticodon, on one end and that amino acid on the other). As an example, AGC is the messenger RNA codon equivalent to serine.
+
+\section{How is this translation taking place?}
+
+As a short recap, we know that messenger RNA has a single strand and the order of the nucleobases (and their symbols: A, U, C, G) are complementary to those of parts in the cell's DNA. 
+
+The process has four phases: initiation, elongation, termination, and recycling.
+
+The ribosome contains three RNA binding sites that are reached, in this order, during the translation’s phases: P, A and E. The P-site is binding a peptidyl-tRNA (a tRNA connected to the polypeptide chain); The A-site is connecting an aminoacyl-tRNA or termination release factors and the E-site, associated with the exit, is binding a free tRNA.
+
+In the beginning, the small ribosomal subunit, usually bound to an aminoacyl-tRNA containing methionine, connects to the start codon AUG that exists near the 5' end of the messenger RNA and attracts the larger subunit. 
+
+The tRNAs are carrying amino acids to the “machine” and then are joining with their complementary codons. After that, the assembled amino acids are chained as the ribosome and its resident rRNAs, moves along the messenger RNA in a motion similar to the one of a Turing machine head on its tape.
+
+The stop codon can be: UAA, UAG or UGA because no tRNA molecule exists so that it recognizes these codons, this the ribosome knowing that the translation is complete. When a ribosome finalizes reading a messenger RNA, the two subunits will separate and can be reused. 
+
+\begin{figure}%
+    \centering
+    \subfloat[\centering Ribosomes read the sequence of messenger RNAs and assemble proteins out of amino acids bound to transfer RNAs]{{\includegraphics[width=0.4\textwidth]{Peptide syn.png} }}%
+    \qquad
+    \subfloat[\centering Translation of messenger RNA (1) by a ribosome (2) into a polypeptide chain (3).]{{\includegraphics[width=0.4\textwidth]{Ribosomer_i_arbete.png} }}%
+    \caption{Translation Process \cite{Wikipedia}}%
+\end{figure}
+
+\section{Is there any difference between the types of ribosomes mentioned at the beginning?}
+
+On the one hand, in prokaryotic cells, transcription (turning DNA into messenger RNA) and translation (turning messenger RNA into proteins) are closely linked given that translation begins most of the time before transcription has ended. 
+
+On the other hand, in eukaryotic cells, those two are completely separated: messenger RNAs are synthesized in the nucleus, and proteins are later created in the cytoplasm.
+
+\bibliographystyle{alpha}
+\bibliography{sample}
+
+\end{document}
